@@ -314,40 +314,24 @@
 
 </div>
 
-<!-- Firebase SDKs Compatibilidade (v8.10.1) -->
+<!-- Firebase SDKs (v8 Compatível) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
 <script>
-    // Substitua os campos abaixo com os dados reais obtidos no seu console do Firebase
-// Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyA1auU1eO02zk_UivZ9iB07c2hC-fQNwm0",
-  authDomain: "controle-de-gastos-5344a.firebaseapp.com",
-  projectId: "controle-de-gastos-5344a",
-  storageBucket: "controle-de-gastos-5344a.firebasestorage.app",
-  messagingSenderId: "185647101023",
-  appId: "1:185647101023:web:c811db08cdc5a99aca17ea",
-  measurementId: "G-BDNFDGBBEQ"
+    apiKey: "AIzaSyA1auU1eO02zk_UivZ9iB07c2hC-fQNwm0",
+    authDomain: "controle-de-gastos-5344a.firebaseapp.com",
+    projectId: "controle-de-gastos-5344a",
+    storageBucket: "controle-de-gastos-5344a.firebasestorage.app",
+    messagingSenderId: "185647101023",
+    appId: "1:185647101023:web:c811db08cdc5a99aca17ea",
+    measurementId: "G-BDNFDGBBEQ"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-let db = null;
-const isFirebaseReady = firebaseConfig.apiKey !== "SUA_API_KEY_REAL";
-
-if (isFirebaseReady) {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database().ref('transacoes');
-}
+// Inicialização do Firebase Realtime Database
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref('transacoes');
 
 document.getElementById('date').valueAsDate = new Date();
 
@@ -367,7 +351,7 @@ const filterEnd = document.getElementById('filter-end');
 
 const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-// 1. SALVAMENTO E COMPUTAÇÃO DOS DADOS
+// 1. SALVAMENTO DOS DADOS
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = editIdInput.value;
@@ -385,50 +369,30 @@ form.addEventListener('submit', async (e) => {
     submitBtn.innerText = "Salvando...";
 
     try {
-        if (isFirebaseReady && db) {
-            // Salva no Firebase
-            if (id) {
-                await db.child(id).update(payload);
-            } else {
-                await db.push({ ...payload, createdAt: Date.now() });
-            }
+        if (id) {
+            await db.child(id).update(payload);
         } else {
-            // Salva no LocalStorage (Modo de teste/Offline)
-            let localData = JSON.parse(localStorage.getItem('transacoes') || '[]');
-            if (id) {
-                localData = localData.map(item => item.id === id ? { ...item, ...payload } : item);
-            } else {
-                localData.push({ id: 'loc_' + Date.now(), ...payload, createdAt: Date.now() });
-            }
-            localStorage.setItem('transacoes', JSON.stringify(localData));
-            loadLocalData();
+            await db.push({ ...payload, createdAt: Date.now() });
         }
         resetForm();
     } catch (error) {
         console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar: " + error.message);
+        alert("Erro ao salvar no Firebase: " + error.message);
     } finally {
         submitBtn.disabled = false;
     }
 });
 
-// 2. RECUPERAÇÃO E SINCRONIZAÇÃO EM TEMPO REAL
-if (isFirebaseReady && db) {
-    db.on('value', (snapshot) => {
-        allTransactions = [];
-        snapshot.forEach((child) => {
-            allTransactions.push({ id: child.key, ...child.val() });
-        });
-        processAndRefresh();
+// 2. ESCUTA E SINCRONIZAÇÃO EM TEMPO REAL
+db.on('value', (snapshot) => {
+    allTransactions = [];
+    snapshot.forEach((child) => {
+        allTransactions.push({ id: child.key, ...child.val() });
     });
-} else {
-    loadLocalData();
-}
-
-function loadLocalData() {
-    allTransactions = JSON.parse(localStorage.getItem('transacoes') || '[]');
     processAndRefresh();
-}
+}, (error) => {
+    console.error("Erro na sincronização:", error);
+});
 
 function processAndRefresh() {
     allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -458,7 +422,7 @@ function renderDashboard() {
     balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
 }
 
-// 4. COMPUTAÇÃO DOS RELATÓRIOS
+// 4. RELATÓRIOS E GRÁFICOS
 function renderReports() {
     const filtered = getFilteredTransactions();
     const expenses = filtered.filter(t => t.type === 'expense');
@@ -474,7 +438,7 @@ function renderReports() {
         totalExpense += val;
     });
 
-    // Gráfico de Categorias
+    // Gráfico por Categoria
     const catCtx = document.getElementById('categoryChart').getContext('2d');
     if (categoryChartInstance) categoryChartInstance.destroy();
     
@@ -490,7 +454,7 @@ function renderReports() {
         options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // Tabela com Cálculo de Porcentagem
+    // Tabela detalhada
     const tableBody = document.getElementById('category-table-body');
     tableBody.innerHTML = '';
     Object.keys(categories).forEach(cat => {
@@ -519,7 +483,7 @@ function renderReports() {
     });
 }
 
-// Funções de Apoio (Filtros, Navegação e Exclusão)
+// 5. NAVEGAÇÃO E FILTROS
 setPreset('this-month', document.querySelector('.btn-quick'));
 
 function setPreset(preset, elementBtn) {
@@ -614,13 +578,10 @@ function resetForm() {
 
 async function deleteTransaction(id) {
     if (confirm("Deseja apagar este lançamento?")) {
-        if (isFirebaseReady && db) {
+        try {
             await db.child(id).remove();
-        } else {
-            let localData = JSON.parse(localStorage.getItem('transacoes') || '[]');
-            localData = localData.filter(item => item.id !== id);
-            localStorage.setItem('transacoes', JSON.stringify(localData));
-            loadLocalData();
+        } catch (error) {
+            alert("Erro ao apagar: " + error.message);
         }
     }
 }
@@ -662,62 +623,6 @@ function renderList() {
         listEl.appendChild(div);
     });
 }
-
-    function renderReports() {
-        const filtered = getFilteredTransactions();
-        const expenses = filtered.filter(t => t.type === 'expense');
-        const categories = {};
-        const userTotals = { Ele: 0, Ela: 0 };
-        let totalExpense = 0;
-
-        expenses.forEach(t => {
-            const cat = t.category || 'Outros';
-            categories[cat] = (categories[cat] || 0) + t.amount;
-            if (userTotals[t.user] !== undefined) userTotals[t.user] += t.amount;
-            totalExpense += t.amount;
-        });
-
-        const catCtx = document.getElementById('categoryChart').getContext('2d');
-        if (categoryChartInstance) categoryChartInstance.destroy();
-        
-        categoryChartInstance = new Chart(catCtx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(categories),
-                datasets: [{
-                    data: Object.values(categories),
-                    backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6B7280']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-
-        const tableBody = document.getElementById('category-table-body');
-        tableBody.innerHTML = '';
-        Object.keys(categories).forEach(cat => {
-            const val = categories[cat];
-            const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : 0;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
-            tableBody.appendChild(tr);
-        });
-
-        const userCtx = document.getElementById('userChart').getContext('2d');
-        if (userChartInstance) userChartInstance.destroy();
-
-        userChartInstance = new Chart(userCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Ele', 'Ela'],
-                datasets: [{
-                    label: 'Gastos R$',
-                    data: [userTotals.Ele, userTotals.Ela],
-                    backgroundColor: ['#3B82F6', '#EC4899']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
 </script>
 </body>
-</html>
+</html>    
