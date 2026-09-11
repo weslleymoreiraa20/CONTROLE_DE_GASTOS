@@ -318,18 +318,28 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
 <script>
     // Substitua os campos abaixo com os dados reais obtidos no seu console do Firebase
 // Configuração do Firebase
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_REAL",
-    authDomain: "SEU_PROJETO_REAL.firebaseapp.com",
-    databaseURL: "https://SEU_PROJETO_REAL-default-rtdb.firebaseio.com",
-    projectId: "SEU_PROJETO_REAL",
-    storageBucket: "SEU_PROJETO_REAL.appspot.com",
-    messagingSenderId: "SEU_ID_REAL",
-    appId: "SEU_APP_ID_REAL"
+  apiKey: "AIzaSyA1auU1eO02zk_UivZ9iB07c2hC-fQNwm0",
+  authDomain: "controle-de-gastos-5344a.firebaseapp.com",
+  projectId: "controle-de-gastos-5344a",
+  storageBucket: "controle-de-gastos-5344a.firebasestorage.app",
+  messagingSenderId: "185647101023",
+  appId: "1:185647101023:web:c811db08cdc5a99aca17ea",
+  measurementId: "G-BDNFDGBBEQ"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 let db = null;
 const isFirebaseReady = firebaseConfig.apiKey !== "SUA_API_KEY_REAL";
