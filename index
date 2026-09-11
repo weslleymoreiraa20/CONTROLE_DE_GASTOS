@@ -28,7 +28,6 @@
             margin: 0 auto;
         }
         
-        /* Navegação */
         .main-nav {
             display: flex;
             background: #fff;
@@ -64,7 +63,6 @@
             margin-bottom: 16px;
         }
 
-        /* Seletor de Período Customizado */
         .period-selector {
             display: flex;
             flex-direction: column;
@@ -126,7 +124,6 @@
         .val-in { color: var(--green); }
         .val-out { color: var(--red); }
 
-        /* Formulários e Inputs */
         input, select, button {
             width: 100%;
             padding: 10px;
@@ -147,12 +144,14 @@
         }
         .btn-cancel {
             background-color: #9CA3AF;
+            color: white;
+            border: none;
             margin-top: 6px;
             display: none;
             padding: 10px;
+            cursor: pointer;
         }
 
-        /* Lista */
         .list-item {
             display: flex;
             justify-content: space-between;
@@ -182,7 +181,6 @@
             margin: 0;
         }
 
-        /* Tabelas e Gráficos */
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -206,19 +204,17 @@
 
 <div class="container">
 
-    <!-- MENU DE ABA -->
     <nav class="main-nav">
         <button class="nav-tab active" onclick="switchView('lancamentos')">💸 Lançamentos</button>
         <button class="nav-tab" onclick="switchView('relatorios')">📊 Relatórios</button>
     </nav>
 
-    <!-- PAINEL GLOBAL DE FILTRO DE DATAS -->
     <div class="card">
         <div class="period-selector">
             <div class="quick-btns">
-                <button class="btn-quick active" onclick="setPreset('this-month')">Este Mês</button>
-                <button class="btn-quick" onclick="setPreset('last-month')">Mês Passado</button>
-                <button class="btn-quick" onclick="setPreset('all')">Tudo</button>
+                <button class="btn-quick active" onclick="setPreset('this-month', this)">Este Mês</button>
+                <button class="btn-quick" onclick="setPreset('last-month', this)">Mês Passado</button>
+                <button class="btn-quick" onclick="setPreset('all', this)">Tudo</button>
             </div>
             <div class="date-range-inputs">
                 <div>
@@ -248,7 +244,6 @@
         </div>
     </div>
 
-    <!-- ABA 1: LANÇAMENTOS -->
     <div id="view-lancamentos" class="view-content active">
         <div class="card">
             <h3 id="form-title" style="margin-top:0;">Novo Lançamento</h3>
@@ -291,7 +286,6 @@
         </div>
     </div>
 
-    <!-- ABA 2: RELATÓRIOS -->
     <div id="view-relatorios" class="view-content">
         <div class="card">
             <h3 style="margin-top:0;">Gastos por Categoria</h3>
@@ -320,235 +314,344 @@
 
 </div>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs Compatibilidade (v8.10.1) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "SUA_API_KEY_REAL",
-        authDomain: "SEU_PROJETO_REAL.firebaseapp.com",
-        databaseURL: "https://SEU_PROJETO_REAL-default-rtdb.firebaseio.com",
-        projectId: "SEU_PROJETO_REAL",
-        storageBucket: "SEU_PROJETO_REAL.appspot.com",
-        messagingSenderId: "SEU_ID_REAL",
-        appId: "SEU_APP_ID_REAL"
+    // Substitua os campos abaixo com os dados reais obtidos no seu console do Firebase
+// Configuração do Firebase
+const firebaseConfig = {
+    apiKey: "SUA_API_KEY_REAL",
+    authDomain: "SEU_PROJETO_REAL.firebaseapp.com",
+    databaseURL: "https://SEU_PROJETO_REAL-default-rtdb.firebaseio.com",
+    projectId: "SEU_PROJETO_REAL",
+    storageBucket: "SEU_PROJETO_REAL.appspot.com",
+    messagingSenderId: "SEU_ID_REAL",
+    appId: "SEU_APP_ID_REAL"
+};
+
+let db = null;
+const isFirebaseReady = firebaseConfig.apiKey !== "SUA_API_KEY_REAL";
+
+if (isFirebaseReady) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database().ref('transacoes');
+}
+
+document.getElementById('date').valueAsDate = new Date();
+
+let allTransactions = [];
+let activeView = 'lancamentos';
+let categoryChartInstance = null;
+let userChartInstance = null;
+
+const form = document.getElementById('finance-form');
+const listEl = document.getElementById('transaction-list');
+const formTitle = document.getElementById('form-title');
+const submitBtn = document.getElementById('submit-btn');
+const cancelBtn = document.getElementById('cancel-btn');
+const editIdInput = document.getElementById('edit-id');
+const filterStart = document.getElementById('filter-start');
+const filterEnd = document.getElementById('filter-end');
+
+const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+// 1. SALVAMENTO E COMPUTAÇÃO DOS DADOS
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = editIdInput.value;
+    const payload = {
+        description: document.getElementById('description').value,
+        amount: parseFloat(document.getElementById('amount').value),
+        date: document.getElementById('date').value,
+        category: document.getElementById('category').value,
+        type: document.getElementById('type').value,
+        user: document.getElementById('user').value,
+        updatedAt: Date.now()
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database().ref('transacoes');
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Salvando...";
 
-    document.getElementById('date').valueAsDate = new Date();
-
-    let allTransactions = [];
-    let activeView = 'lancamentos';
-    let categoryChartInstance = null;
-    let userChartInstance = null;
-
-    const form = document.getElementById('finance-form');
-    const listEl = document.getElementById('transaction-list');
-    const formTitle = document.getElementById('form-title');
-    const submitBtn = document.getElementById('submit-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
-    const editIdInput = document.getElementById('edit-id');
-    const filterStart = document.getElementById('filter-start');
-    const filterEnd = document.getElementById('filter-end');
-
-    // Inicializa Filtros de Data com o Mês Atual
-    setPreset('this-month');
-
-    function setPreset(preset) {
-        document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
-        const now = new Date();
-
-        if (preset === 'this-month') {
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            filterStart.value = formatDateInput(firstDay);
-            filterEnd.value = formatDateInput(lastDay);
-            event?.target?.classList.add('active');
-        } else if (preset === 'last-month') {
-            const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
-            filterStart.value = formatDateInput(firstDay);
-            filterEnd.value = formatDateInput(lastDay);
-            event?.target?.classList.add('active');
-        } else if (preset === 'all') {
-            filterStart.value = '';
-            filterEnd.value = '';
-            event?.target?.classList.add('active');
-        }
-        
-        refreshDataViews();
-    }
-
-    function customDateChanged() {
-        document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
-        refreshDataViews();
-    }
-
-    function formatDateInput(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    function switchView(viewName) {
-        activeView = viewName;
-        document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-
-        if (viewName === 'lancamentos') {
-            document.querySelectorAll('.nav-tab')[0].classList.add('active');
-            document.getElementById('view-lancamentos').classList.add('active');
+    try {
+        if (isFirebaseReady && db) {
+            // Salva no Firebase
+            if (id) {
+                await db.child(id).update(payload);
+            } else {
+                await db.push({ ...payload, createdAt: Date.now() });
+            }
         } else {
-            document.querySelectorAll('.nav-tab')[1].classList.add('active');
-            document.getElementById('view-relatorios').classList.add('active');
+            // Salva no LocalStorage (Modo de teste/Offline)
+            let localData = JSON.parse(localStorage.getItem('transacoes') || '[]');
+            if (id) {
+                localData = localData.map(item => item.id === id ? { ...item, ...payload } : item);
+            } else {
+                localData.push({ id: 'loc_' + Date.now(), ...payload, createdAt: Date.now() });
+            }
+            localStorage.setItem('transacoes', JSON.stringify(localData));
+            loadLocalData();
         }
-        refreshDataViews();
+        resetForm();
+    } catch (error) {
+        console.error("Erro ao salvar:", error);
+        alert("Erro ao salvar: " + error.message);
+    } finally {
+        submitBtn.disabled = false;
     }
+});
 
-    // Filtragem de Dados
-    function getFilteredTransactions() {
-        return allTransactions.filter(t => {
-            if (!filterStart.value && !filterEnd.value) return true;
-            
-            const tDate = t.date;
-            const start = filterStart.value || '1900-01-01';
-            const end = filterEnd.value || '2099-12-31';
-
-            return tDate >= start && tDate <= end;
-        });
-    }
-
-    function refreshDataViews() {
-        renderDashboard();
-        if (activeView === 'lancamentos') {
-            renderList();
-        } else {
-            renderReports();
-        }
-    }
-
-    // Firebase Sync
+// 2. RECUPERAÇÃO E SINCRONIZAÇÃO EM TEMPO REAL
+if (isFirebaseReady && db) {
     db.on('value', (snapshot) => {
         allTransactions = [];
         snapshot.forEach((child) => {
             allTransactions.push({ id: child.key, ...child.val() });
         });
-        
-        allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-        refreshDataViews();
+        processAndRefresh();
     });
+} else {
+    loadLocalData();
+}
 
-    // Form CRUD
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = editIdInput.value;
-        const payload = {
-            description: document.getElementById('description').value,
-            amount: parseFloat(document.getElementById('amount').value),
-            date: document.getElementById('date').value,
-            category: document.getElementById('category').value,
-            type: document.getElementById('type').value,
-            user: document.getElementById('user').value,
-            updatedAt: Date.now()
-        };
+function loadLocalData() {
+    allTransactions = JSON.parse(localStorage.getItem('transacoes') || '[]');
+    processAndRefresh();
+}
 
-        if (id) {
-            db.child(id).update(payload).then(() => resetForm());
+function processAndRefresh() {
+    allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    refreshDataViews();
+}
+
+// 3. CÁLCULO E COMPUTAÇÃO DOS TOTAIS
+function renderDashboard() {
+    let totalIn = 0;
+    let totalOut = 0;
+
+    getFilteredTransactions().forEach(t => {
+        if (t.type === 'income') {
+            totalIn += Number(t.amount);
         } else {
-            payload.createdAt = Date.now();
-            db.push(payload).then(() => resetForm());
+            totalOut += Number(t.amount);
         }
     });
 
-    function editTransaction(id) {
-        const item = allTransactions.find(t => t.id === id);
-        if (!item) return;
+    const balance = totalIn - totalOut;
 
-        editIdInput.value = item.id;
-        document.getElementById('description').value = item.description;
-        document.getElementById('amount').value = item.amount;
-        document.getElementById('date').value = item.date;
-        document.getElementById('category').value = item.category || 'Outros';
-        document.getElementById('type').value = item.type;
-        document.getElementById('user').value = item.user;
+    document.getElementById('dash-in').innerText = formatCurrency(totalIn);
+    document.getElementById('dash-out').innerText = formatCurrency(totalOut);
+    
+    const balanceEl = document.getElementById('dash-balance');
+    balanceEl.innerText = formatCurrency(balance);
+    balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
+}
 
-        formTitle.innerText = "Editar Lançamento";
-        submitBtn.innerText = "Atualizar Lançamento";
-        cancelBtn.style.display = "block";
-        switchView('lancamentos');
+// 4. COMPUTAÇÃO DOS RELATÓRIOS
+function renderReports() {
+    const filtered = getFilteredTransactions();
+    const expenses = filtered.filter(t => t.type === 'expense');
+    const categories = {};
+    const userTotals = { Ele: 0, Ela: 0 };
+    let totalExpense = 0;
+
+    expenses.forEach(t => {
+        const cat = t.category || 'Outros';
+        const val = Number(t.amount);
+        categories[cat] = (categories[cat] || 0) + val;
+        if (userTotals[t.user] !== undefined) userTotals[t.user] += val;
+        totalExpense += val;
+    });
+
+    // Gráfico de Categorias
+    const catCtx = document.getElementById('categoryChart').getContext('2d');
+    if (categoryChartInstance) categoryChartInstance.destroy();
+    
+    categoryChartInstance = new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(categories),
+            datasets: [{
+                data: Object.values(categories),
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6B7280']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Tabela com Cálculo de Porcentagem
+    const tableBody = document.getElementById('category-table-body');
+    tableBody.innerHTML = '';
+    Object.keys(categories).forEach(cat => {
+        const val = categories[cat];
+        const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
+        tableBody.appendChild(tr);
+    });
+
+    // Gráfico Ele vs Ela
+    const userCtx = document.getElementById('userChart').getContext('2d');
+    if (userChartInstance) userChartInstance.destroy();
+
+    userChartInstance = new Chart(userCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Ele', 'Ela'],
+            datasets: [{
+                label: 'Gastos R$',
+                data: [userTotals.Ele, userTotals.Ela],
+                backgroundColor: ['#3B82F6', '#EC4899']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+// Funções de Apoio (Filtros, Navegação e Exclusão)
+setPreset('this-month', document.querySelector('.btn-quick'));
+
+function setPreset(preset, elementBtn) {
+    document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+    if (elementBtn) elementBtn.classList.add('active');
+
+    const now = new Date();
+    if (preset === 'this-month') {
+        filterStart.value = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
+        filterEnd.value = formatDateInput(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    } else if (preset === 'last-month') {
+        filterStart.value = formatDateInput(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+        filterEnd.value = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 0));
+    } else if (preset === 'all') {
+        filterStart.value = '';
+        filterEnd.value = '';
     }
+    refreshDataViews();
+}
 
-    function resetForm() {
-        form.reset();
-        editIdInput.value = "";
-        formTitle.innerText = "Novo Lançamento";
-        submitBtn.innerText = "Salvar Lançamento";
-        cancelBtn.style.display = "none";
-        document.getElementById('date').valueAsDate = new Date();
+function customDateChanged() {
+    document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+    refreshDataViews();
+}
+
+function formatDateInput(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function switchView(viewName) {
+    activeView = viewName;
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+
+    if (viewName === 'lancamentos') {
+        document.querySelectorAll('.nav-tab')[0].classList.add('active');
+        document.getElementById('view-lancamentos').classList.add('active');
+    } else {
+        document.querySelectorAll('.nav-tab')[1].classList.add('active');
+        document.getElementById('view-relatorios').classList.add('active');
     }
+    refreshDataViews();
+}
 
-    function deleteTransaction(id) {
-        if (confirm("Deseja apagar este lançamento?")) {
-            db.child(id).remove();
+function getFilteredTransactions() {
+    return allTransactions.filter(t => {
+        if (!filterStart.value && !filterEnd.value) return true;
+        const start = filterStart.value || '1900-01-01';
+        const end = filterEnd.value || '2099-12-31';
+        return t.date >= start && t.date <= end;
+    });
+}
+
+function refreshDataViews() {
+    renderDashboard();
+    if (activeView === 'lancamentos') {
+        renderList();
+    } else {
+        renderReports();
+    }
+}
+
+function editTransaction(id) {
+    const item = allTransactions.find(t => t.id === id);
+    if (!item) return;
+
+    editIdInput.value = item.id;
+    document.getElementById('description').value = item.description;
+    document.getElementById('amount').value = item.amount;
+    document.getElementById('date').value = item.date;
+    document.getElementById('category').value = item.category || 'Outros';
+    document.getElementById('type').value = item.type;
+    document.getElementById('user').value = item.user;
+
+    formTitle.innerText = "Editar Lançamento";
+    submitBtn.innerText = "Atualizar Lançamento";
+    cancelBtn.style.display = "block";
+    switchView('lancamentos');
+}
+
+function resetForm() {
+    form.reset();
+    editIdInput.value = "";
+    formTitle.innerText = "Novo Lançamento";
+    submitBtn.innerText = "Salvar Lançamento";
+    cancelBtn.style.display = "none";
+    document.getElementById('date').valueAsDate = new Date();
+}
+
+async function deleteTransaction(id) {
+    if (confirm("Deseja apagar este lançamento?")) {
+        if (isFirebaseReady && db) {
+            await db.child(id).remove();
+        } else {
+            let localData = JSON.parse(localStorage.getItem('transacoes') || '[]');
+            localData = localData.filter(item => item.id !== id);
+            localStorage.setItem('transacoes', JSON.stringify(localData));
+            loadLocalData();
         }
     }
+}
 
-    function renderDashboard() {
-        let totalIn = 0, totalOut = 0;
-        getFilteredTransactions().forEach(t => {
-            if (t.type === 'income') totalIn += t.amount;
-            else totalOut += t.amount;
-        });
-
-        document.getElementById('dash-in').innerText = `R$ ${totalIn.toFixed(2)}`;
-        document.getElementById('dash-out').innerText = `R$ ${totalOut.toFixed(2)}`;
-        const balance = totalIn - totalOut;
-        const balanceEl = document.getElementById('dash-balance');
-        balanceEl.innerText = `R$ ${balance.toFixed(2)}`;
-        balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
+function renderList() {
+    listEl.innerHTML = '';
+    const filtered = getFilteredTransactions();
+    
+    if (filtered.length === 0) {
+        listEl.innerHTML = '<p style="text-align:center; color:#9CA3AF;">Nenhum registro encontrado neste período.</p>';
+        return;
     }
 
-    function renderList() {
-        listEl.innerHTML = '';
-        const filtered = getFilteredTransactions();
-        
-        if (filtered.length === 0) {
-            listEl.innerHTML = '<p style="text-align:center; color:#9CA3AF;">Nenhum registro encontrado neste período.</p>';
-            return;
-        }
+    filtered.forEach((t) => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        const badgeClass = t.user === 'Ele' ? 'badge-ele' : 'badge-ela';
+        const valueClass = t.type === 'income' ? 'val-in' : 'val-out';
+        const sign = t.type === 'income' ? '+' : '-';
+        const dateParts = t.date.split('-');
 
-        filtered.forEach((t) => {
-            const div = document.createElement('div');
-            div.className = 'list-item';
-            const badgeClass = t.user === 'Ele' ? 'badge-ele' : 'badge-ela';
-            const valueClass = t.type === 'income' ? 'val-in' : 'val-out';
-            const sign = t.type === 'income' ? '+' : '-';
-            const dateParts = t.date.split('-');
-
-            div.innerHTML = `
-                <div>
-                    <strong>${t.description}</strong>
-                    <span class="item-date">(${dateParts[2]}/${dateParts[1]})</span>
-                    <div style="margin-top:2px;">
-                        <span class="badge ${badgeClass}">${t.user}</span>
-                        <span class="badge badge-cat">${t.category || 'Outros'}</span>
-                    </div>
+        div.innerHTML = `
+            <div>
+                <strong>${t.description}</strong>
+                <span class="item-date">(${dateParts[2]}/${dateParts[1]})</span>
+                <div style="margin-top:2px;">
+                    <span class="badge ${badgeClass}">${t.user}</span>
+                    <span class="badge badge-cat">${t.category || 'Outros'}</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="${valueClass}" style="font-weight: bold;">
-                        ${sign} R$ ${t.amount.toFixed(2)}
-                    </span>
-                    <button class="btn-icon" onclick="editTransaction('${t.id}')">✏️</button>
-                    <button class="btn-icon" onclick="deleteTransaction('${t.id}')">🗑️</button>
-                </div>
-            `;
-            listEl.appendChild(div);
-        });
-    }
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span class="${valueClass}" style="font-weight: bold;">
+                    ${sign} ${formatCurrency(t.amount)}
+                </span>
+                <button class="btn-icon" onclick="editTransaction('${t.id}')">✏️</button>
+                <button class="btn-icon" onclick="deleteTransaction('${t.id}')">🗑️</button>
+            </div>
+        `;
+        listEl.appendChild(div);
+    });
+}
 
     function renderReports() {
         const filtered = getFilteredTransactions();
@@ -564,7 +667,6 @@
             totalExpense += t.amount;
         });
 
-        // 1. Gráfico de Pizza por Categoria
         const catCtx = document.getElementById('categoryChart').getContext('2d');
         if (categoryChartInstance) categoryChartInstance.destroy();
         
@@ -580,18 +682,16 @@
             options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // 2. Tabela Detalhada
         const tableBody = document.getElementById('category-table-body');
         tableBody.innerHTML = '';
         Object.keys(categories).forEach(cat => {
             const val = categories[cat];
             const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : 0;
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${cat}</td><td>R$ ${val.toFixed(2)}</td><td>${pct}%</td>`;
+            tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
             tableBody.appendChild(tr);
         });
 
-        // 3. Gráfico de Barras Ele vs Ela
         const userCtx = document.getElementById('userChart').getContext('2d');
         if (userChartInstance) userChartInstance.destroy();
 
@@ -609,6 +709,5 @@
         });
     }
 </script>
-
 </body>
 </html>
