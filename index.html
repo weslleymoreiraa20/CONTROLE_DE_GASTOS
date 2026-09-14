@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanças do Casal</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2563EB;
+            --green: #10B981;
+            --red: #EF4444;
+            --bg: #F3F4F6;
+            --ele-color: #3B82F6;
+            --ela-color: #EC4899;
+            --gray: #6B7280;
+            --purple: #8B5CF6;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 16px;
+            color: #1F2937;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .main-nav {
+            display: flex;
+            background: #fff;
+            border-radius: 12px;
+            padding: 6px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 10px 4px;
+            border: none;
+            background: none;
+            font-weight: bold;
+            font-size: 0.85em;
+            color: var(--gray);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .view-content { display: none; }
+        .view-content.active { display: block; }
+
+        .card {
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 16px;
+        }
+
+        .period-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .quick-btns {
+            display: flex;
+            gap: 6px;
+        }
+        .btn-quick {
+            flex: 1;
+            padding: 6px;
+            font-size: 0.8em;
+            border: 1px solid #D1D5DB;
+            background: #F9FAFB;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-quick.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .date-range-inputs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .date-range-inputs div { flex: 1; }
+        .date-range-inputs label {
+            font-size: 0.75em;
+            color: var(--gray);
+            font-weight: bold;
+            display: block;
+        }
+
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            text-align: center;
+        }
+        .dash-item {
+            background: #F9FAFB;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+        .dash-item span {
+            display: block;
+            font-size: 0.75em;
+            color: var(--gray);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .dash-item strong { font-size: 0.95em; }
+        .val-in { color: var(--green); }
+        .val-out { color: var(--red); }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 4px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button.btn-primary {
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin-top: 12px;
+            padding: 12px;
+        }
+        .btn-cancel {
+            background-color: #9CA3AF;
+            color: white;
+            border: none;
+            margin-top: 6px;
+            display: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            color: white;
+            font-weight: bold;
+        }
+        .badge-ele { background-color: var(--ele-color); }
+        .badge-ela { background-color: var(--ela-color); }
+        .badge-cat { background-color: #E5E7EB; color: #374151; }
+        .item-date { font-size: 0.75em; color: #9CA3AF; }
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            padding: 2px;
+            width: auto;
+            margin: 0;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        .report-table th, .report-table td {
+            padding: 8px 4px;
+            text-align: left;
+            font-size: 0.85em;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 220px;
+            width: 100%;
+        }
+
+        /* Cofrinhos CSS */
+        .piggy-card {
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+            background: #FAFAFA;
+        }
+        .piggy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .piggy-title {
+            font-weight: bold;
+            font-size: 1.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .progress-bar-bg {
+            background-color: #E5E7EB;
+            border-radius: 8px;
+            height: 12px;
+            width: 100%;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--green);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .piggy-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            color: var(--gray);
+        }
+        .piggy-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .btn-piggy {
+            padding: 6px 10px;
+            font-size: 0.8em;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-piggy-add { background: var(--green); color: white; }
+        .btn-piggy-sub { background: #F59E0B; color: white; }
+        .btn-piggy-edit { background: #9CA3AF; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <nav class="main-nav">
+        <button class="nav-tab active" onclick="switchView('lancamentos')">💸 Lançamentos</button>
+        <button class="nav-tab" onclick="switchView('cofrinhos')">🐷 Cofrinhos</button>
+        <button class="nav-tab" onclick="switchView('relatorios')">📊 Relatórios</button>
+    </nav>
+
+    <div id="summary-card" class="card">
+        <div class="period-selector">
+            <div class="quick-btns">
+                <button class="btn-quick active" onclick="setPreset('this-month', this)">Este Mês</button>
+                <button class="btn-quick" onclick="setPreset('last-month', this)">Mês Passado</button>
+                <button class="btn-quick" onclick="setPreset('all', this)">Tudo</button>
+            </div>
+            <div class="date-range-inputs">
+                <div>
+                    <label>De:</label>
+                    <input type="date" id="filter-start" onchange="customDateChanged()">
+                </div>
+                <div>
+                    <label>Até:</label>
+                    <input type="date" id="filter-end" onchange="customDateChanged()">
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-grid">
+            <div class="dash-item">
+                <span>Entradas</span>
+                <strong id="dash-in" class="val-in">R$ 0,00</strong>
+            </div>
+            <div class="dash-item">
+                <span>Saídas</span>
+                <strong id="dash-out" class="val-out">R$ 0,00</strong>
+            </div>
+            <div class="dash-item">
+                <span>Saldo</span>
+                <strong id="dash-balance">R$ 0,00</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISÃO DE LANÇAMENTOS -->
+    <div id="view-lancamentos" class="view-content active">
+        <div class="card">
+            <h3 id="form-title" style="margin-top:0;">Novo Lançamento</h3>
+            <form id="finance-form">
+                <input type="hidden" id="edit-id" value="">
+                <input type="text" id="description" placeholder="Descrição (ex: Mercado, Salário)" required>
+                <input type="number" step="0.01" id="amount" placeholder="Valor (R$)" required>
+                <input type="date" id="date" required>
+                
+                <select id="category" required>
+                    <option value="" disabled selected>Selecione uma Categoria</option>
+                    <option value="Alimentação">Alimentação / Mercado</option>
+                    <option value="Moradia">Moradia / Contas</option>
+                    <option value="Transporte">Transporte / Combustível</option>
+                    <option value="Lazer">Lazer / Viagens</option>
+                    <option value="Saúde">Saúde / Farmácia</option>
+                    <option value="Salário">Salário / Renda</option>
+                    <option value="Outros">Outros</option>
+                </select>
+
+                <div style="display: flex; gap: 8px;">
+                    <select id="type">
+                        <option value="expense">Saída (Gasto)</option>
+                        <option value="income">Entrada (Salário)</option>
+                    </select>
+                    <select id="user">
+                        <option value="Ele">Lançado por: Ele</option>
+                        <option value="Ela">Lançado por: Ela</option>
+                    </select>
+                </div>
+                
+                <button type="submit" id="submit-btn" class="btn-primary">Salvar Lançamento</button>
+                <button type="button" id="cancel-btn" class="btn-cancel" onclick="resetForm()">Cancelar Edição</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0;">Histórico do Período</h3>
+            <div id="transaction-list"></div>
+        </div>
+    </div>
+
+    <!-- VISÃO DE COFRINHOS -->
+    <div id="view-cofrinhos" class="view-content">
+        <div class="card">
+            <h3 style="margin-top:0;">Nossos Cofrinhos 🎯</h3>
+            
+            <!-- Cofrinho Férias -->
+            <div class="piggy-card">
+                <div class="piggy-header">
+                    <span class="piggy-title">✈️ Férias</span>
+                    <strong id="ferias-percent" style="color: var(--primary);">0%</strong>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="ferias-progress" class="progress-bar-fill"></div>
+                </div>
+                <div class="piggy-values">
+                    <span>Guardado: <strong id="ferias-current" style="color: var(--green);">R$ 0,00</strong></span>
+                    <span>Meta: <strong id="ferias-target">R$ 5.000,00</strong></span>
+                </div>
+                <div class="piggy-actions">
+                    <button class="btn-piggy btn-piggy-add" onclick="updatePiggyAmount('ferias', 'add')">+ Guardar</button>
+                    <button class="btn-piggy btn-piggy-sub" onclick="updatePiggyAmount('ferias', 'sub')">- Retirar</button>
+                    <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('ferias')">⚙️ Meta</button>
+                </div>
+            </div>
+
+            <!-- Cofrinho Emergência -->
+            <div class="piggy-card">
+                <div class="piggy-header">
+                    <span class="piggy-title">🛡️ Reserva de Emergência</span>
+                    <strong id="emergencia-percent" style="color: var(--primary);">0%</strong>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="emergencia-progress" class="progress-bar-fill"></div>
+                </div>
+                <div class="piggy-values">
+                    <span>Guardado: <strong id="emergencia-current" style="color: var(--green);">R$ 0,00</strong></span>
+                    <span>Meta: <strong id="emergencia-target">R$ 10.000,00</strong></span>
+                </div>
+                <div class="piggy-actions">
+                    <button class="btn-piggy btn-piggy-add" onclick="updatePiggyAmount('emergencia', 'add')">+ Guardar</button>
+                    <button class="btn-piggy btn-piggy-sub" onclick="updatePiggyAmount('emergencia', 'sub')">- Retirar</button>
+                    <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('emergencia')">⚙️ Meta</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- VISÃO DE RELATÓRIOS -->
+    <div id="view-relatorios" class="view-content">
+        <div class="card">
+            <h3 style="margin-top:0;">Gastos por Categoria</h3>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Total</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody id="category-table-body"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0;">Divisão de Gastos: Ele vs Ela</h3>
+            <div class="chart-container">
+                <canvas id="userChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Firebase SDKs (v8 Compatível) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyA1auU1eO02zk_UivZ9iB07c2hC-fQNwm0",
+    authDomain: "controle-de-gastos-5344a.firebaseapp.com",
+    projectId: "controle-de-gastos-5344a",
+    storageBucket: "controle-de-gastos-5344a.firebasestorage.app",
+    messagingSenderId: "185647101023",
+    appId: "1:185647101023:web:c811db08cdc5a99aca17ea",
+    measurementId: "G-BDNFDGBBEQ"
+};
+
+// Inicialização do Firebase Realtime Database
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref('transacoes');
+const dbCofrinhos = firebase.database().ref('cofrinhos');
+
+document.getElementById('date').valueAsDate = new Date();
+
+let allTransactions = [];
+let piggyData = {
+    ferias: { current: 0, target: 5000 },
+    emergencia: { current: 0, target: 10000 }
+};
+
+let activeView = 'lancamentos';
+let categoryChartInstance = null;
+let userChartInstance = null;
+
+const form = document.getElementById('finance-form');
+const listEl = document.getElementById('transaction-list');
+const formTitle = document.getElementById('form-title');
+const submitBtn = document.getElementById('submit-btn');
+const cancelBtn = document.getElementById('cancel-btn');
+const editIdInput = document.getElementById('edit-id');
+const filterStart = document.getElementById('filter-start');
+const filterEnd = document.getElementById('filter-end');
+
+const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+// 1. SALVAMENTO DOS DADOS DE TRANSAÇÕES
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = editIdInput.value;
+    const payload = {
+        description: document.getElementById('description').value,
+        amount: parseFloat(document.getElementById('amount').value),
+        date: document.getElementById('date').value,
+        category: document.getElementById('category').value,
+        type: document.getElementById('type').value,
+        user: document.getElementById('user').value,
+        updatedAt: Date.now()
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Salvando...";
+
+    try {
+        if (id) {
+            await db.child(id).update(payload);
+        } else {
+            await db.push({ ...payload, createdAt: Date.now() });
+        }
+        resetForm();
+    } catch (error) {
+        console.error("Erro ao salvar:", error);
+        alert("Erro ao salvar no Firebase: " + error.message);
+    } finally {
+        submitBtn.disabled = false;
+    }
+});
+
+// 2. ESCUTA E SINCRONIZAÇÃO EM TEMPO REAL (TRANSAÇÕES)
+db.on('value', (snapshot) => {
+    allTransactions = [];
+    snapshot.forEach((child) => {
+        allTransactions.push({ id: child.key, ...child.val() });
+    });
+    processAndRefresh();
+}, (error) => {
+    console.error("Erro na sincronização:", error);
+});
+
+// 3. ESCUTA E SINCRONIZAÇÃO EM TEMPO REAL (COFRINHOS)
+dbCofrinhos.on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        if (data.ferias) piggyData.ferias = { ...piggyData.ferias, ...data.ferias };
+        if (data.emergencia) piggyData.emergencia = { ...piggyData.emergencia, ...data.emergencia };
+    }
+    renderPiggies();
+});
+
+function processAndRefresh() {
+    allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    refreshDataViews();
+}
+
+// 4. LÓGICA E RENDERIZAÇÃO DOS COFRINHOS
+function renderPiggies() {
+    ['ferias', 'emergencia'].forEach(key => {
+        const item = piggyData[key];
+        const currentEl = document.getElementById(`${key}-current`);
+        const targetEl = document.getElementById(`${key}-target`);
+        const progressEl = document.getElementById(`${key}-progress`);
+        const percentEl = document.getElementById(`${key}-percent`);
+
+        if (currentEl && targetEl && progressEl && percentEl) {
+            currentEl.innerText = formatCurrency(item.current || 0);
+            targetEl.innerText = formatCurrency(item.target || 1);
+
+            const pct = Math.min(100, Math.max(0, ((item.current / item.target) * 100))).toFixed(1);
+            progressEl.style.width = `${pct}%`;
+            percentEl.innerText = `${pct}%`;
+        }
+    });
+}
+
+async function updatePiggyAmount(key, action) {
+    const label = key === 'ferias' ? 'Férias' : 'Reserva de Emergência';
+    const verb = action === 'add' ? 'guardar no' : 'retirar do';
+    const valStr = prompt(`Informe o valor que deseja ${verb} cofrinho de ${label}:`);
+    
+    if (!valStr) return;
+    const val = parseFloat(valStr.replace(',', '.'));
+    if (isNaN(val) || val <= 0) {
+        alert("Por favor, digite um valor válido.");
+        return;
+    }
+
+    let current = piggyData[key].current || 0;
+    if (action === 'add') {
+        current += val;
+    } else {
+        current = Math.max(0, current - val);
+    }
+
+    try {
+        await dbCofrinhos.child(key).update({ current });
+    } catch (e) {
+        alert("Erro ao atualizar cofrinho: " + e.message);
+    }
+}
+
+async function editPiggyTarget(key) {
+    const label = key === 'ferias' ? 'Férias' : 'Reserva de Emergência';
+    const currentTarget = piggyData[key].target || 0;
+    const valStr = prompt(`Defina a nova META para o cofrinho de ${label}:`, currentTarget);
+    
+    if (!valStr) return;
+    const val = parseFloat(valStr.replace(',', '.'));
+    if (isNaN(val) || val <= 0) {
+        alert("Por favor, digite um valor válido.");
+        return;
+    }
+
+    try {
+        await dbCofrinhos.child(key).update({ target: val });
+    } catch (e) {
+        alert("Erro ao atualizar meta: " + e.message);
+    }
+}
+
+// 5. CÁLCULO E COMPUTAÇÃO DOS TOTAIS
+function renderDashboard() {
+    let totalIn = 0;
+    let totalOut = 0;
+
+    getFilteredTransactions().forEach(t => {
+        if (t.type === 'income') {
+            totalIn += Number(t.amount);
+        } else {
+            totalOut += Number(t.amount);
+        }
+    });
+
+    const balance = totalIn - totalOut;
+
+    document.getElementById('dash-in').innerText = formatCurrency(totalIn);
+    document.getElementById('dash-out').innerText = formatCurrency(totalOut);
+    
+    const balanceEl = document.getElementById('dash-balance');
+    balanceEl.innerText = formatCurrency(balance);
+    balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+// 6. RELATÓRIOS E GRÁFICOS
+function renderReports() {
+    const filtered = getFilteredTransactions();
+    const expenses = filtered.filter(t => t.type === 'expense');
+    const categories = {};
+    const userTotals = { Ele: 0, Ela: 0 };
+    let totalExpense = 0;
+
+    expenses.forEach(t => {
+        const cat = t.category || 'Outros';
+        const val = Number(t.amount);
+        categories[cat] = (categories[cat] || 0) + val;
+        if (userTotals[t.user] !== undefined) userTotals[t.user] += val;
+        totalExpense += val;
+    });
+
+    // Gráfico por Categoria
+    const catCtx = document.getElementById('categoryChart').getContext('2d');
+    if (categoryChartInstance) categoryChartInstance.destroy();
+    
+    categoryChartInstance = new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(categories),
+            datasets: [{
+                data: Object.values(categories),
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6B7280']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Tabela detalhada
+    const tableBody = document.getElementById('category-table-body');
+    tableBody.innerHTML = '';
+    Object.keys(categories).forEach(cat => {
+        const val = categories[cat];
+        const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
+        tableBody.appendChild(tr);
+    });
+
+    // Gráfico Ele vs Ela
+    const userCtx = document.getElementById('userChart').getContext('2d');
+    if (userChartInstance) userChartInstance.destroy();
+
+    userChartInstance = new Chart(userCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Ele', 'Ela'],
+            datasets: [{
+                label: 'Gastos R$',
+                data: [userTotals.Ele, userTotals.Ela],
+                backgroundColor: ['#3B82F6', '#EC4899']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+// 7. NAVEGAÇÃO E FILTROS
+setPreset('this-month', document.querySelector('.btn-quick'));
+
+function setPreset(preset, elementBtn) {
+    document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+    if (elementBtn) elementBtn.classList.add('active');
+
+    const now = new Date();
+    if (preset === 'this-month') {
+        filterStart.value = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
+        filterEnd.value = formatDateInput(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    } else if (preset === 'last-month') {
+        filterStart.value = formatDateInput(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+        filterEnd.value = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 0));
+    } else if (preset === 'all') {
+        filterStart.value = '';
+        filterEnd.value = '';
+    }
+    refreshDataViews();
+}
+
+function customDateChanged() {
+    document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+    refreshDataViews();
+}
+
+function formatDateInput(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function switchView(viewName) {
+    activeView = viewName;
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+
+    const summaryCard = document.getElementById('summary-card');
+
+    if (viewName === 'lancamentos') {
+        document.querySelectorAll('.nav-tab')[0].classList.add('active');
+        document.getElementById('view-lancamentos').classList.add('active');
+        summaryCard.style.display = 'block';
+    } else if (viewName === 'cofrinhos') {
+        document.querySelectorAll('.nav-tab')[1].classList.add('active');
+        document.getElementById('view-cofrinhos').classList.add('active');
+        summaryCard.style.display = 'none';
+    } else {
+        document.querySelectorAll('.nav-tab')[2].classList.add('active');
+        document.getElementById('view-relatorios').classList.add('active');
+        summaryCard.style.display = 'block';
+    }
+    refreshDataViews();
+}
+
+function getFilteredTransactions() {
+    return allTransactions.filter(t => {
+        if (!filterStart.value && !filterEnd.value) return true;
+        const start = filterStart.value || '1900-01-01';
+        const end = filterEnd.value || '2099-12-31';
+        return t.date >= start && t.date <= end;
+    });
+}
+
+function refreshDataViews() {
+    renderDashboard();
+    if (activeView === 'lancamentos') {
+        renderList();
+    } else if (activeView === 'cofrinhos') {
+        renderPiggies();
+    } else {
+        renderReports();
+    }
+}
+
+function editTransaction(id) {
+    const item = allTransactions.find(t => t.id === id);
+    if (!item) return;
+
+    editIdInput.value = item.id;
+    document.getElementById('description').value = item.description;
+    document.getElementById('amount').value = item.amount;
+    document.getElementById('date').value = item.date;
+    document.getElementById('category').value = item.category || 'Outros';
+    document.getElementById('type').value = item.type;
+    document.getElementById('user').value = item.user;
+
+    formTitle.innerText = "Editar Lançamento";
+    submitBtn.innerText = "Atualizar Lançamento";
+    cancelBtn.style.display = "block";
+    switchView('lancamentos');
+}
+
+function resetForm() {
+    form.reset();
+    editIdInput.value = "";
+    formTitle.innerText = "Novo Lançamento";
+    submitBtn.innerText = "Salvar Lançamento";
+    cancelBtn.style.display = "none";
+    document.getElementById('date').valueAsDate = new Date();
+}
+
+async function deleteTransaction(id) {
+    if (confirm("Deseja apagar este lançamento?")) {
+        try {
+            await db.child(id).remove();
+        } catch (error) {
+            alert("Erro ao apagar: " + error.message);
+        }
+    }
+}
+
+function renderList() {
+    listEl.innerHTML = '';
+    const filtered = getFilteredTransactions();
+    
+    if (filtered.length === 0) {
+        listEl.innerHTML = '<p style="text-align:center; color:#9CA3AF;">Nenhum registro encontrado neste período.</p>';
+        return;
+    }
+
+    filtered.forEach((t) => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        const badgeClass = t.user === 'Ele' ? 'badge-ele' : 'badge-ela';
+        const valueClass = t.type === 'income' ? 'val-in' : 'val-out';
+        const sign = t.type === 'income' ? '+' : '-';
+        const dateParts = t.date.split('-');
+
+        div.innerHTML = `
+            <div>
+                <strong>${t.description}</strong>
+                <span class="item-date">(${dateParts[2]}/${dateParts[1]})</span>
+                <div style="margin-top:2px;">
+                    <span class="badge ${badgeClass}">${t.user}</span>
+                    <span class="badge badge-cat">${t.category || 'Outros'}</span>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span class="${valueClass}" style="font-weight: bold;">
+                    ${sign} ${formatCurrency(t.amount)}
+                </span>
+                <button class="btn-icon" onclick="editTransaction('${t.id}')">✏️</button>
+                <button class="btn-icon" onclick="deleteTransaction('${t.id}')">🗑️</button>
+            </div>
+        `;
+        listEl.appendChild(div);
+    });
+}
+</script>
+</body>
+</html>
