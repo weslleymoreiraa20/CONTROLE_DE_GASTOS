@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-	<link rel="manifest" href="manifest.json">
-	<meta name="theme-color" content="#4F46E5">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4F46E5">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanças do Casal</title>
@@ -192,62 +192,91 @@
             margin-bottom: 16px;
         }
 
-        /* MODAL DE PARCELAS */
+        /* MODAIS */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: rgba(15, 23, 42, 0.5);
             backdrop-filter: blur(4px);
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
             padding: 16px;
         }
-        .modal-card {
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-content, .modal-card {
             background: var(--surface);
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            width: 100%;
-            max-width: 440px;
+            width: 90%;
+            max-width: 650px;
             max-height: 80vh;
-            overflow-y: auto;
+            border-radius: var(--radius-lg);
+            padding: 20px;
             box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
             border: 1px solid var(--gray-200);
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
-            border-bottom: 1px solid var(--gray-100);
+            border-bottom: 1px solid var(--gray-200);
             padding-bottom: 12px;
+            margin-bottom: 16px;
         }
+
         .modal-header h3 {
             margin: 0;
             font-size: 1.1em;
             color: var(--primary);
             font-weight: 700;
         }
-        .btn-close {
+
+        .btn-fechar, .btn-close {
             background: var(--gray-100);
             border: none;
-            font-size: 0.9em;
+            font-size: 1.2rem;
             cursor: pointer;
             color: var(--gray-500);
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            margin: 0;
-            padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .btn-close:hover { background: var(--gray-200); color: var(--gray-900); }
+        .btn-fechar:hover, .btn-close:hover { background: var(--gray-200); color: var(--gray-900); }
+
+        .modal-body {
+            overflow-y: auto;
+        }
+
+        .tabela-detalhes {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tabela-detalhes th, .tabela-detalhes td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.85rem;
+        }
+
+        .tabela-detalhes th {
+            background-color: var(--gray-50);
+            color: var(--gray-500);
+            font-weight: 700;
+        }
 
         /* CARD DE LEMBRETE DE VENCIMENTO */
         .reminder-card {
@@ -337,6 +366,10 @@
             padding: 12px 8px;
             border-radius: var(--radius-md);
             border: 1px solid var(--gray-200);
+            transition: background 0.2s;
+        }
+        .dash-item:hover {
+            background: var(--gray-100);
         }
         .dash-item span {
             display: block;
@@ -580,15 +613,15 @@
         </div>
 
         <div class="dash-grid">
-            <div class="dash-item">
+            <div class="dash-item" onclick="abrirModalDetalhes('entrada')" style="cursor: pointer;" title="Clique para ver detalhes de entradas">
                 <span>Entradas</span>
                 <strong id="dash-in" class="val-in">R$ 0,00</strong>
             </div>
-            <div class="dash-item">
+            <div class="dash-item" onclick="abrirModalDetalhes('saida')" style="cursor: pointer;" title="Clique para ver detalhes de saídas">
                 <span>Saídas</span>
                 <strong id="dash-out" class="val-out">R$ 0,00</strong>
             </div>
-            <div class="dash-item">
+            <div class="dash-item" onclick="filterByTypeAndMonth('all')" style="cursor: pointer;" title="Exibir todos os lançamentos">
                 <span>Saldo</span>
                 <strong id="dash-balance">R$ 0,00</strong>
             </div>
@@ -649,11 +682,9 @@
                     <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
                     <option value="Alimentação">🛒 Alimentação / Mercado</option>
                     <option value="Moradia">🏠 Moradia / Contas</option>
-                    <option value="Internet / Telefonia">🌐 Internet / Telefonia</option>
                     <option value="Transporte">🚗 Transporte / Combustível</option>
                     <option value="Lazer">🎉 Lazer / Viagens</option>
                     <option value="Saúde">💊 Saúde / Farmácia</option>
-					<option value="Educação">🎓 Educação / Creche</option>	
                     <option value="Salário">💵 Salário / Renda</option>
                     <option value="Cofrinho">🐷 Cofrinho / Investimento</option>
                     <option value="Outros">📌 Outros</option>
@@ -765,6 +796,45 @@
 
 </div>
 
+<!-- MODAL DE DETALHES DE ENTRADAS/SAÍDAS -->
+<div id="modal-detalhes" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modal-titulo">Detalhes</h3>
+      <button onclick="fecharModal()" class="btn-fechar">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <table class="tabela-detalhes">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Quem</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="modal-tabela-corpo">
+          <!-- Dados via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE DETALHES DAS PARCELAS -->
+<div id="installments-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeInstallmentsModal()">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modal-title">Detalhes das Parcelas</h3>
+            <button class="btn-close" onclick="closeInstallmentsModal()">✖</button>
+        </div>
+        <div id="modal-installments-list"></div>
+    </div>
+</div>
+
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -817,6 +887,60 @@ function logout() {
     checkAuth();
 }
 
+function abrirModalDetalhes(tipoDesejado) {
+  const modal = document.getElementById('modal-detalhes');
+  const titulo = document.getElementById('modal-titulo');
+  const tabelaCorpo = document.getElementById('modal-tabela-corpo');
+
+  const isIncome = tipoDesejado === 'entrada' || tipoDesejado === 'income';
+  const targetType = isIncome ? 'income' : 'expense';
+
+  titulo.innerText = isIncome ? 'Detalhes de Entradas' : 'Detalhes de Saídas';
+  tabelaCorpo.innerHTML = '';
+
+  const filtrados = getFilteredTransactions().filter(item => item.type === targetType);
+
+  if (filtrados.length === 0) {
+    tabelaCorpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--gray-400);">Nenhum registro encontrado.</td></tr>`;
+  } else {
+    filtrados.forEach(item => {
+      const dateParts = item.date.split('-');
+      const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : item.date;
+      const isPaid = item.status === 'pago';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${formattedDate}</td>
+        <td>${item.description || '-'}</td>
+        <td>${item.category || '-'}</td>
+        <td>${item.user || '-'}</td>
+        <td style="font-weight: bold; color: ${isIncome ? 'var(--green)' : 'var(--red)'};">
+          ${formatCurrency(item.amount)}
+        </td>
+        <td>
+          <span style="color: ${isPaid ? 'var(--green)' : 'var(--amber)'}; font-weight: 600;">
+            ${isPaid ? '✓ Pago' : '⏳ Pendente'}
+          </span>
+        </td>
+      `;
+      tabelaCorpo.appendChild(tr);
+    });
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function fecharModal() {
+  document.getElementById('modal-detalhes').classList.add('hidden');
+}
+
+window.onclick = function(event) {
+  const modal = document.getElementById('modal-detalhes');
+  if (event.target === modal) {
+    fecharModal();
+  }
+};
+
 checkAuth();
 
 document.getElementById('date').value = formatDateInput(new Date());
@@ -830,6 +954,7 @@ let piggyData = {
 let activeView = 'lancamentos';
 let categoryChartInstance = null;
 let userChartInstance = null;
+let activeTypeFilter = 'all';	
 
 const form = document.getElementById('finance-form');
 const listEl = document.getElementById('transaction-list');
@@ -1039,11 +1164,11 @@ function showInstallments(id) {
         });
     }
 
-    document.getElementById('installments-modal').style.display = 'flex';
+    document.getElementById('installments-modal').classList.remove('hidden');
 }
 
 function closeInstallmentsModal() {
-    document.getElementById('installments-modal').style.display = 'none';
+    document.getElementById('installments-modal').classList.add('hidden');
 }
 
 function renderPiggies() {
@@ -1189,7 +1314,7 @@ function renderReports() {
             labels: Object.keys(categories),
             datasets: [{
                 data: Object.values(categories),
-                backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899', '#6B7280', '#14B8A6']
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6B7280']
             }]
         },
         options: { responsive: true, maintainAspectRatio: false }
@@ -1277,13 +1402,9 @@ function switchView(viewName) {
     refreshDataViews();
 }
 
-function getFilteredTransactions() {
-    return allTransactions.filter(t => {
-        if (!filterStart.value && !filterEnd.value) return true;
-        const start = filterStart.value || '1900-01-01';
-        const end = filterEnd.value || '2099-12-31';
-        return t.date >= start && t.date <= end;
-    });
+function filterByTypeAndMonth(type) {
+    activeTypeFilter = type;
+    refreshDataViews();
 }
 
 function refreshDataViews() {
@@ -1338,6 +1459,17 @@ async function deleteTransaction(id) {
             alert("Erro ao apagar: " + error.message);
         }
     }
+}
+
+function getFilteredTransactions() {
+    return allTransactions.filter(t => {
+        const start = filterStart.value || '1900-01-01';
+        const end = filterEnd.value || '2099-12-31';
+        const inDateRange = t.date >= start && t.date <= end;
+        const matchesType = activeTypeFilter === 'all' || t.type === activeTypeFilter;
+        
+        return inDateRange && matchesType;
+    });
 }
 
 function renderList() {
@@ -1400,17 +1532,6 @@ function renderList() {
     });
 }
 </script>
-
-<!-- MODAL DE DETALHES DAS PARCELAS -->
-<div id="installments-modal" class="modal-overlay" onclick="if(event.target === this) closeInstallmentsModal()">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3 id="modal-title">Detalhes das Parcelas</h3>
-            <button class="btn-close" onclick="closeInstallmentsModal()">✖</button>
-        </div>
-        <div id="modal-installments-list"></div>
-    </div>
-</div>
 
 </body>
 </html>
