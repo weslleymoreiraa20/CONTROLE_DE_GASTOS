@@ -1,11 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+	<link rel="manifest" href="manifest.json">
+	<meta name="theme-color" content="#2563EB">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanças do Casal</title>
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('PWA registrado com sucesso!'))
+                .catch((err) => console.error('Erro ao registrar PWA:', err));
+        }
+    </script>
+
     <style>
         :root {
             --primary: #2563EB;
@@ -24,7 +36,7 @@
             padding: 16px;
             color: #1F2937;
         }
-        
+
         /* TELA DE LOGIN */
         #login-overlay {
             position: fixed;
@@ -63,7 +75,7 @@
             margin: 0 auto;
             display: none;
         }
-        
+
         .header-top {
             display: flex;
             justify-content: space-between;
@@ -116,6 +128,81 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             margin-bottom: 16px;
         }
+
+				/* MODAL DE PARCELAS */
+		.modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 10000;
+		}
+		.modal-card {
+			background: #fff;
+			padding: 20px;
+			border-radius: 16px;
+			width: 90%;
+			max-width: 420px;
+			max-height: 80vh;
+			overflow-y: auto;
+			box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+		}
+		.modal-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 12px;
+			border-bottom: 1px solid #E5E7EB;
+			padding-bottom: 8px;
+		}
+		.modal-header h3 {
+			margin: 0;
+			font-size: 1.1em;
+			color: var(--primary);
+		}
+		.btn-close {
+			background: none;
+			border: none;
+			font-size: 1.2em;
+			cursor: pointer;
+			color: var(--gray);
+			width: auto;
+			margin: 0;
+			padding: 0;
+		}
+        /* CARD DE LEMBRETE DE VENCIMENTO */
+        .reminder-card {
+            background: #FEF3C7;
+            border: 1px solid #F59E0B;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .reminder-card h4 {
+            margin: 0 0 8px 0;
+            color: #B45309;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .reminder-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            padding: 4px 0;
+            border-bottom: 1px dashed #FCD34D;
+        }
+        .reminder-item:last-child {
+            border-bottom: none;
+        }
+        .overdue-text { color: var(--red); font-weight: bold; }
+        .due-soon-text { color: #D97706; font-weight: bold; }
 
         .period-selector {
             display: flex;
@@ -377,16 +464,56 @@
 
     <!-- VISÃO DE LANÇAMENTOS -->
     <div id="view-lancamentos" class="view-content active">
+
+        <!-- PAINEL DE ALERTAS DE VENCIMENTO -->
+        <div id="reminder-container" class="reminder-card" style="display: none;">
+            <h4>🔔 Lembrete de Vencimentos Perto ou Atrasados</h4>
+            <div id="reminder-list"></div>
+        </div>
+
         <div class="card">
             <h3 id="form-title" style="margin-top:0;">Novo Lançamento</h3>
             <form id="finance-form">
                 <input type="hidden" id="edit-id" value="">
-                <input type="text" id="description" placeholder="Descrição (ex: Mercado, Salário)" required>
-                <input type="number" step="0.01" min="0.01" id="amount" placeholder="Valor (R$)" required>
-                <input type="date" id="date" required>
+                <input type="text" id="description" placeholder="Descrição (ex: Mercado, Cartão Nubank)" required>
                 
-                <select id="category" required>
+                <div style="display: flex; gap: 8px;">
+                    <div style="flex: 2;">
+                        <label style="font-size: 0.75em; color: var(--gray); font-weight: bold;">Valor da Parcela (R$)</label>
+                        <input type="number" step="0.01" min="0.01" id="amount" placeholder="0.00" required>
+                    </div>
+                    <div style="flex: 1;" id="installments-wrapper">
+                        <label style="font-size: 0.75em; color: var(--gray); font-weight: bold;">Parcelas</label>
+                        <select id="installments">
+                            <option value="1">1x (À vista)</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                            <option value="6">6x</option>
+                            <option value="7">7x</option>
+                            <option value="8">8x</option>
+                            <option value="9">9x</option>
+                            <option value="10">10x</option>
+                            <option value="11">11x</option>
+                            <option value="12">12x</option>
+                            <option value="18">18x</option>
+                            <option value="24">24x</option>
+                            <option value="36">36x</option>
+                            <option value="48">48x</option>
+                            <option value="60">60x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 8px;">
+                    <label style="font-size: 0.75em; color: var(--gray); font-weight: bold;">Data de Vencimento / Pagamento</label>
+                    <input type="date" id="date" required>
+                </div>
+
+                <select id="category" required style="margin-top: 8px;">
                     <option value="" disabled selected>Selecione uma Categoria</option>
+                    <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
                     <option value="Alimentação">Alimentação / Mercado</option>
                     <option value="Moradia">Moradia / Contas</option>
                     <option value="Transporte">Transporte / Combustível</option>
@@ -397,7 +524,7 @@
                     <option value="Outros">Outros</option>
                 </select>
 
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
                     <select id="type">
                         <option value="expense">Saída (Gasto)</option>
                         <option value="income">Entrada (Salário)</option>
@@ -407,7 +534,14 @@
                         <option value="Ela">Lançado por: Ela</option>
                     </select>
                 </div>
-                
+
+                <div style="display: flex; gap: 8px; align-items: center; margin: 12px 0;">
+                    <input type="checkbox" id="is-paid" checked style="width: auto; margin: 0;">
+                    <label for="is-paid" style="font-size: 0.85em; color: var(--gray); font-weight: bold; cursor: pointer;">
+                        1ª parcela já foi paga/recebida?
+                    </label>
+                </div>
+
                 <button type="submit" id="submit-btn" class="btn-primary">Salvar Lançamento</button>
                 <button type="button" id="cancel-btn" class="btn-cancel" onclick="resetForm()">Cancelar Edição</button>
             </form>
@@ -423,7 +557,7 @@
     <div id="view-cofrinhos" class="view-content">
         <div class="card">
             <h3 style="margin-top:0;">Nossos Cofrinhos 🎯</h3>
-            
+
             <!-- Cofrinho Férias -->
             <div class="piggy-card">
                 <div class="piggy-header">
@@ -501,7 +635,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-const APP_PASSWORD = "1234"; 
+const APP_PASSWORD = "1234";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA1auU1eO02zk_UivZ9iB07c2hC-fQNwm0",
@@ -573,28 +707,70 @@ const filterEnd = document.getElementById('filter-end');
 
 const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 
-// 1. SALVAMENTO DOS DADOS DE TRANSAÇÕES
+// Helper para somar meses mantendo o dia aproximado
+function addMonthsToDate(dateString, monthsToAdd) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setMonth(date.getMonth() + monthsToAdd);
+    
+    // Tratamento de viradas de mês (ex: 31 de Jan + 1 mês = final de Fev)
+    if (date.getDate() !== day && monthsToAdd > 0) {
+        date.setDate(0); 
+    }
+    return formatDateInput(date);
+}
+
+// 1. SALVAMENTO DOS DADOS DE TRANSAÇÕES (INCLUINDO PARCELAMENTO AUTOMÁTICO)
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = editIdInput.value;
-    const payload = {
-        description: document.getElementById('description').value.trim(),
-        amount: parseFloat(document.getElementById('amount').value),
-        date: document.getElementById('date').value,
-        category: document.getElementById('category').value,
-        type: document.getElementById('type').value,
-        user: document.getElementById('user').value,
-        updatedAt: Date.now()
-    };
+    const baseDescription = document.getElementById('description').value.trim();
+    const amount = parseFloat(document.getElementById('amount').value);
+    const startDate = document.getElementById('date').value;
+    const category = document.getElementById('category').value;
+    const type = document.getElementById('type').value;
+    const user = document.getElementById('user').value;
+    const isPaidFirst = document.getElementById('is-paid').checked;
+    const numInstallments = parseInt(document.getElementById('installments').value, 10) || 1;
 
     submitBtn.disabled = true;
     submitBtn.innerText = "Salvando...";
 
     try {
         if (id) {
+            // Edição simples de uma única transação
+            const payload = {
+                description: baseDescription,
+                amount: amount,
+                date: startDate,
+                category: category,
+                type: type,
+                user: user,
+                status: isPaidFirst ? 'pago' : 'pendente',
+                updatedAt: Date.now()
+            };
             await db.child(id).update(payload);
         } else {
-            await db.push({ ...payload, createdAt: Date.now() });
+            // Lançamento Novo: Gerar Parcelas Futuras se numInstallments > 1
+            for (let i = 0; i < numInstallments; i++) {
+                const installmentDate = addMonthsToDate(startDate, i);
+                const desc = numInstallments > 1 ? `${baseDescription} (${i + 1}/${numInstallments})` : baseDescription;
+                
+                // Apenas a 1ª parcela herda o estado do checkbox "pago". As seguintes nascem como "pendente".
+                const status = (i === 0) ? (isPaidFirst ? 'pago' : 'pendente') : 'pendente';
+
+                const payload = {
+                    description: desc,
+                    amount: amount,
+                    date: installmentDate,
+                    category: category,
+                    type: type,
+                    user: user,
+                    status: status,
+                    createdAt: Date.now()
+                };
+                await db.push(payload);
+            }
         }
         resetForm();
     } catch (error) {
@@ -629,17 +805,141 @@ function processAndRefresh() {
     refreshDataViews();
 }
 
-// 4. LÓGICA E RENDERIZAÇÃO DOS COFRINHOS (CÁLCULO DIRETO PELAS TRANSAÇÕES)
+// LÓGICA DE ALERTAS E REMINDERS DE VENCIMENTO
+function checkReminders() {
+    const reminderCard = document.getElementById('reminder-container');
+    const reminderList = document.getElementById('reminder-list');
+    reminderList.innerHTML = '';
+
+    const todayStr = formatDateInput(new Date());
+    
+    // Calcula limite de aviso (próximos 5 dias)
+    const futureLimit = new Date();
+    futureLimit.setDate(futureLimit.getDate() + 5);
+    const futureLimitStr = formatDateInput(futureLimit);
+
+    // Filtra transações pendentes até 5 dias no futuro ou atrasadas
+    const pendingUpcoming = allTransactions.filter(t => {
+        return t.status === 'pendente' && t.date <= futureLimitStr;
+    });
+
+    // Ordena da mais antiga/atrasada para a mais recente
+    pendingUpcoming.sort((a, b) => (a.date > b.date ? 1 : -1));
+
+    if (pendingUpcoming.length === 0) {
+        reminderCard.style.display = 'none';
+        return;
+    }
+
+    reminderCard.style.display = 'block';
+
+    pendingUpcoming.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'reminder-item';
+
+        const isOverdue = item.date < todayStr;
+        const isToday = item.date === todayStr;
+
+        const dateParts = item.date.split('-');
+        const formattedDate = `${dateParts[2]}/${dateParts[1]}`;
+
+        let statusBadge = '';
+        if (isOverdue) {
+            statusBadge = `<span class="overdue-text">⚠️ Vencido em ${formattedDate}</span>`;
+        } else if (isToday) {
+            statusBadge = `<span class="due-soon-text">⏳ Vence Hoje!</span>`;
+        } else {
+            statusBadge = `<span class="due-soon-text">🗓️ Vence dia ${formattedDate}</span>`;
+        }
+
+        div.innerHTML = `
+            <div>
+                <strong>${item.description}</strong> - ${formatCurrency(item.amount)}
+                <br>${statusBadge}
+            </div>
+            <button onclick="toggleStatus('${item.id}', true)" style="width: auto; padding: 4px 8px; font-size: 0.75em; background: var(--green); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Marcar Pago
+            </button>
+        `;
+        reminderList.appendChild(div);
+    });
+}
+
+	// ABRIR MODAL COM TODAS AS PARCELAS E DATAS DE VENCIMENTO
+function showInstallments(id) {
+    const currentItem = allTransactions.find(t => t.id === id);
+    if (!currentItem) return;
+
+    // Remove a marcação "(x/y)" do nome para encontrar todas as parcelas relacionadas
+    const baseDesc = currentItem.description.replace(/\s*\(\d+\/\d+\)$/, '').trim();
+
+    // Filtra todas as transações da mesma compra/conta
+    const related = allTransactions.filter(t => {
+        const itemBase = t.description.replace(/\s*\(\d+\/\d+\)$/, '').trim();
+        return itemBase.toLowerCase() === baseDesc.toLowerCase();
+    });
+
+    // Ordena por data de vencimento (da 1ª para a última)
+    related.sort((a, b) => (a.date > b.date ? 1 : -1));
+
+    const modalTitle = document.getElementById('modal-title');
+    const listEl = document.getElementById('modal-installments-list');
+
+    modalTitle.innerText = `Parcelas: ${baseDesc}`;
+    listEl.innerHTML = '';
+
+    if (related.length === 0) {
+        listEl.innerHTML = '<p style="text-align:center; color: var(--gray);">Nenhuma parcela encontrada.</p>';
+    } else {
+        related.forEach(item => {
+            const isPaid = item.status === 'pago';
+            const dateParts = item.date.split('-');
+            const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : item.date;
+
+            const div = document.createElement('div');
+            div.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+                border-bottom: 1px solid #F3F4F6;
+            `;
+
+            div.innerHTML = `
+                <div>
+                    <strong style="font-size: 0.9em;">${item.description}</strong>
+                    <div style="font-size: 0.8em; color: var(--gray); margin-top: 2px;">
+                        🗓️ Vencimento: <strong>${formattedDate}</strong>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: bold; font-size: 0.9em;">${formatCurrency(item.amount)}</div>
+                    <span style="display: inline-block; font-size: 0.7em; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: white; background-color: ${isPaid ? 'var(--green)' : '#F59E0B'}; margin-top: 2px;">
+                        ${isPaid ? '✓ Pago' : '⏳ Pendente'}
+                    </span>
+                </div>
+            `;
+            listEl.appendChild(div);
+        });
+    }
+
+    document.getElementById('installments-modal').style.display = 'flex';
+}
+
+function closeInstallmentsModal() {
+    document.getElementById('installments-modal').style.display = 'none';
+}
+
+// 4. LÓGICA E RENDERIZAÇÃO DOS COFRINHOS
 function renderPiggies() {
     ['ferias', 'emergencia'].forEach(key => {
         const labelText = key === 'ferias' ? 'Cofrinho: Férias' : 'Cofrinho: Emergência';
-        
-        // Calcula o saldo total acumulado no cofrinho a partir do histórico de lançamentos
+
         let totalPiggy = 0;
         allTransactions.forEach(t => {
             if (t.description === labelText) {
-                if (t.type === 'expense') totalPiggy += Number(t.amount); // Guardou
-                else if (t.type === 'income') totalPiggy -= Number(t.amount); // Retirou
+                if (t.type === 'expense') totalPiggy += Number(t.amount);
+                else if (t.type === 'income') totalPiggy -= Number(t.amount);
             }
         });
 
@@ -662,23 +962,20 @@ function renderPiggies() {
     });
 }
 
-// ALTERAÇÃO: LANÇA AUTOMATICAMENTE COMO ENTRADA OU SAÍDA
 async function updatePiggyAmount(key, action) {
     const label = key === 'ferias' ? 'Férias' : 'Emergência';
     const piggyDescription = `Cofrinho: ${label}`;
     const verb = action === 'add' ? 'guardar no' : 'retirar do';
-    
+
     const valStr = prompt(`Informe o valor que deseja ${verb} cofrinho de ${label}:`);
     if (!valStr) return;
-    
+
     const val = parseFloat(valStr.replace('.', '').replace(',', '.'));
     if (isNaN(val) || val <= 0) {
         alert("Por favor, digite um valor válido.");
         return;
     }
 
-    // Ao guardar: Lança uma SAÍDA (reduz o saldo geral)
-    // Ao retirar: Lança uma ENTRADA (aumenta o saldo geral)
     const transactionType = action === 'add' ? 'expense' : 'income';
 
     const payload = {
@@ -687,7 +984,8 @@ async function updatePiggyAmount(key, action) {
         date: formatDateInput(new Date()),
         category: 'Cofrinho',
         type: transactionType,
-        user: 'Ele', // Padrão
+        user: 'Ele',
+        status: 'pago',
         createdAt: Date.now()
     };
 
@@ -698,11 +996,22 @@ async function updatePiggyAmount(key, action) {
     }
 }
 
+async function toggleStatus(id, isChecked) {
+    try {
+        await db.child(id).update({
+            status: isChecked ? 'pago' : 'pendente',
+            updatedAt: Date.now()
+        });
+    } catch (error) {
+        alert("Erro ao atualizar status: " + error.message);
+    }
+}
+
 async function editPiggyTarget(key) {
     const label = key === 'ferias' ? 'Férias' : 'Reserva de Emergência';
     const currentTarget = piggyData[key].target || (key === 'ferias' ? 5000 : 10000);
     const valStr = prompt(`Defina a nova META para o cofrinho de ${label}:`, currentTarget);
-    
+
     if (!valStr) return;
     const val = parseFloat(valStr.replace('.', '').replace(',', '.'));
     if (isNaN(val) || val <= 0) {
@@ -718,15 +1027,19 @@ async function editPiggyTarget(key) {
 }
 
 // 5. CÁLCULO DO DASHBOARD
+// 5. CÁLCULO DO DASHBOARD
 function renderDashboard() {
     let totalIn = 0;
     let totalOut = 0;
 
     getFilteredTransactions().forEach(t => {
-        if (t.type === 'income') {
-            totalIn += Number(t.amount);
-        } else {
-            totalOut += Number(t.amount);
+        // Valida se o lançamento/parcela está marcado como pago
+        if (t.status === 'pago') {
+            if (t.type === 'income') {
+                totalIn += Number(t.amount);
+            } else {
+                totalOut += Number(t.amount);
+            }
         }
     });
 
@@ -734,7 +1047,7 @@ function renderDashboard() {
 
     document.getElementById('dash-in').innerText = formatCurrency(totalIn);
     document.getElementById('dash-out').innerText = formatCurrency(totalOut);
-    
+
     const balanceEl = document.getElementById('dash-balance');
     balanceEl.innerText = formatCurrency(balance);
     balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
@@ -758,7 +1071,7 @@ function renderReports() {
 
     const catCtx = document.getElementById('categoryChart').getContext('2d');
     if (categoryChartInstance) categoryChartInstance.destroy();
-    
+
     categoryChartInstance = new Chart(catCtx, {
         type: 'doughnut',
         data: {
@@ -866,6 +1179,7 @@ function getFilteredTransactions() {
 function refreshDataViews() {
     renderDashboard();
     if (activeView === 'lancamentos') {
+        checkReminders();
         renderList();
     } else if (activeView === 'cofrinhos') {
         renderPiggies();
@@ -885,6 +1199,10 @@ function editTransaction(id) {
     document.getElementById('category').value = item.category || 'Outros';
     document.getElementById('type').value = item.type;
     document.getElementById('user').value = item.user;
+    document.getElementById('is-paid').checked = (item.status !== 'pendente');
+
+    // Oculta campo de parcelas durante a edição individual
+    document.getElementById('installments-wrapper').style.display = 'none';
 
     formTitle.innerText = "Editar Lançamento";
     submitBtn.innerText = "Atualizar Lançamento";
@@ -898,7 +1216,9 @@ function resetForm() {
     formTitle.innerText = "Novo Lançamento";
     submitBtn.innerText = "Salvar Lançamento";
     cancelBtn.style.display = "none";
+    document.getElementById('installments-wrapper').style.display = 'block';
     document.getElementById('date').value = formatDateInput(new Date());
+    document.getElementById('is-paid').checked = true;
 }
 
 async function deleteTransaction(id) {
@@ -914,40 +1234,75 @@ async function deleteTransaction(id) {
 function renderList() {
     listEl.innerHTML = '';
     const filtered = getFilteredTransactions();
-    
+
     if (filtered.length === 0) {
         listEl.innerHTML = '<p style="text-align:center; color:#9CA3AF;">Nenhum registro encontrado neste período.</p>';
         return;
     }
 
-    filtered.forEach((t) => {
+    filtered.forEach(item => {
         const div = document.createElement('div');
         div.className = 'list-item';
-        const badgeClass = t.user === 'Ele' ? 'badge-ele' : 'badge-ela';
-        const valueClass = t.type === 'income' ? 'val-in' : 'val-out';
-        const sign = t.type === 'income' ? '+' : '-';
-        const dateParts = t.date.split('-');
+
+        const isExpense = item.type === 'expense';
+        const valClass = isExpense ? 'val-out' : 'val-in';
+        const valSign = isExpense ? '-' : '+';
+        const badgeUserClass = item.user === 'Ele' ? 'badge-ele' : 'badge-ela';
+
+        const dateParts = item.date.split('-');
+        const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : item.date;
+
+        const isPaid = item.status !== 'pendente';
+        const rowOpacity = isPaid ? '1' : '0.6';
+        const borderLeft = isPaid ? 'transparent' : '#F59E0B'; 
+        const bgColor = isPaid ? 'transparent' : '#FFFBEB'; 
+
+        div.style.opacity = rowOpacity;
+        div.style.backgroundColor = bgColor;
+        div.style.borderLeft = `4px solid ${borderLeft}`;
+        div.style.paddingLeft = '8px';
 
         div.innerHTML = `
-            <div>
-                <strong>${t.description}</strong>
-                <span class="item-date">(${dateParts[2]}/${dateParts[1]})</span>
-                <div style="margin-top:2px;">
-                    <span class="badge ${badgeClass}">${t.user}</span>
-                    <span class="badge badge-cat">${t.category || 'Outros'}</span>
+            <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                <input type="checkbox" ${isPaid ? 'checked' : ''}
+                       onchange="toggleStatus('${item.id}', this.checked)"
+                       style="width: 20px; height: 20px; cursor: pointer; margin: 0;">
+
+                <div style="flex: 1; cursor: pointer;" onclick="showInstallments('${item.id}')" title="Clique para ver todas as parcelas">
+                    <div style="font-weight: bold;">
+                        ${item.description} ${!isPaid ? '<span style="color: #F59E0B; font-size: 0.75em;">(Futuro/Pendente)</span>' : ''}
+                    </div>
+                    <div style="margin-top: 4px;">
+                        <span class="badge ${badgeUserClass}">${item.user}</span>
+                        <span class="badge badge-cat">${item.category || 'Outros'}</span>
+                        <span class="item-date">${formattedDate}</span>
+                    </div>
                 </div>
-            </div>
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span class="${valueClass}" style="font-weight: bold;">
-                    ${sign} ${formatCurrency(t.amount)}
-                </span>
-                <button class="btn-icon" onclick="editTransaction('${t.id}')">✏️</button>
-                <button class="btn-icon" onclick="deleteTransaction('${t.id}')">🗑️</button>
+                <div style="text-align: right;">
+                    <div class="${valClass}" style="font-weight: bold;">${valSign} ${formatCurrency(item.amount)}</div>
+                    <div style="margin-top: 4px;">
+                        <button class="btn-icon" onclick="showInstallments('${item.id}')" title="Ver Parcelas">🗓️</button>
+                        <button class="btn-icon" onclick="editTransaction('${item.id}')" title="Editar">✏️</button>
+                        <button class="btn-icon" onclick="deleteTransaction('${item.id}')" title="Excluir">🗑️</button>
+                    </div>
+                </div>
             </div>
         `;
         listEl.appendChild(div);
     });
 }
 </script>
+
+<!-- MODAL DE DETALHES DAS PARCELAS (Fora da tag script) -->
+<div id="installments-modal" class="modal-overlay" onclick="if(event.target === this) closeInstallmentsModal()">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modal-title">Detalhes das Parcelas</h3>
+            <button class="btn-close" onclick="closeInstallmentsModal()">✖</button>
+        </div>
+        <div id="modal-installments-list"></div>
+    </div>
+</div>
+
 </body>
 </html>
