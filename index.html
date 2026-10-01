@@ -356,7 +356,7 @@
 
     .dash-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
       text-align: center;
     }
@@ -631,6 +631,9 @@
       <div style="background: #F0F7FF; border: 1px solid #BFDBFE; border-radius: var(--radius-md); padding: 10px; text-align: center;">
         <div style="font-size: 0.8em; font-weight: 700; color: var(--weslley-color);">💳 Carteira Weslley</div>
         <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
+          Anterior: <span id="weslley-prev" style="font-weight:700;">R$ 0,00</span>
+        </div>
+        <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
           +<span id="weslley-in" class="val-in">R$ 0,00</span> | -<span id="weslley-out" class="val-out">R$ 0,00</span>
         </div>
         <div style="font-size: 0.95em; font-weight: 800; margin-top: 4px;" id="weslley-balance">R$ 0,00</div>
@@ -638,13 +641,21 @@
       <div style="background: #FDF2F8; border: 1px solid #FBCFE8; border-radius: var(--radius-md); padding: 10px; text-align: center;">
         <div style="font-size: 0.8em; font-weight: 700; color: var(--andreia-color);">💳 Carteira Andreia</div>
         <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
+          Anterior: <span id="andreia-prev" style="font-weight:700;">R$ 0,00</span>
+        </div>
+        <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
           +<span id="andreia-in" class="val-in">R$ 0,00</span> | -<span id="andreia-out" class="val-out">R$ 0,00</span>
         </div>
         <div style="font-size: 0.95em; font-weight: 800; margin-top: 4px;" id="andreia-balance">R$ 0,00</div>
       </div>
     </div>
 
+    <!-- GRID RESUMO GERAL -->
     <div class="dash-grid">
+      <div class="dash-item" title="Saldo trazido de meses anteriores">
+        <span>Saldo Anterior</span>
+        <strong id="dash-prev" style="color: var(--gray-700);">R$ 0,00</strong>
+      </div>
       <div class="dash-item" onclick="abrirModalDetalhes('entrada')" style="cursor: pointer;" title="Clique para ver detalhes de entradas">
         <span>Entradas (<span id="dash-filter-label">Geral</span>)</span>
         <strong id="dash-in" class="val-in">R$ 0,00</strong>
@@ -654,7 +665,7 @@
         <strong id="dash-out" class="val-out">R$ 0,00</strong>
       </div>
       <div class="dash-item" onclick="filterByTypeAndMonth('all')" style="cursor: pointer;" title="Exibir todos os lançamentos">
-        <span>Saldo Selecionado</span>
+        <span>Saldo Acumulado</span>
         <strong id="dash-balance">R$ 0,00</strong>
       </div>
     </div>
@@ -772,7 +783,7 @@
         <div class="piggy-actions">
           <button class="btn-piggy btn-piggy-add" onclick="updatePiggyAmount('ferias', 'add')">+ Guardar</button>
           <button class="btn-piggy btn-piggy-sub" onclick="updatePiggyAmount('ferias', 'sub')">- Retirar</button>
-          <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('ferias')">⚙️ Meta</button>
+          <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('ferias')">⚙️️ Meta</button>
         </div>
       </div>
 
@@ -1223,20 +1234,30 @@ function refreshDataViews() {
 // ==========================================
 
 function renderDashboard() {
-  let weslleyIn = 0, weslleyOut = 0;
-  let andreiaIn = 0, andreiaOut = 0;
+  let weslleyIn = 0, weslleyOut = 0, weslleyPrev = 0;
+  let andreiaIn = 0, andreiaOut = 0, andreiaPrev = 0;
 
   const start = filterStart.value || '1900-01-01';
   const end = filterEnd.value || '2099-12-31';
 
   allTransactions.forEach(t => {
-    const inDateRange = t.date >= start && t.date <= end;
-    if (!inDateRange) return;
+    if (t.status !== 'pago') return;
 
-    if (t.status === 'pago') {
-      const userNorm = normalizeUser(t.user);
-      const amt = Number(t.amount) || 0;
+    const userNorm = normalizeUser(t.user);
+    const amt = Number(t.amount) || 0;
 
+    // 1. Lógica de Carteira Bancária: Saldo Trazido de Meses Anteriores
+    if (start && t.date < start) {
+      if (t.type === 'income') {
+        if (userNorm === 'Weslley') weslleyPrev += amt;
+        if (userNorm === 'Andreia') andreiaPrev += amt;
+      } else {
+        if (userNorm === 'Weslley') weslleyPrev -= amt;
+        if (userNorm === 'Andreia') andreiaPrev -= amt;
+      }
+    } 
+    // 2. Movimentações do Período Atual
+    else if (t.date <= end) {
       if (t.type === 'income') {
         if (userNorm === 'Weslley') weslleyIn += amt;
         if (userNorm === 'Andreia') andreiaIn += amt;
@@ -1249,23 +1270,35 @@ function renderDashboard() {
 
   const selectedUser = document.getElementById('filter-user')?.value || 'all';
 
+  let totalPrev = 0;
   let totalIn = 0;
   let totalOut = 0;
 
   if (selectedUser === 'Weslley') {
+    totalPrev = weslleyPrev;
     totalIn = weslleyIn;
     totalOut = weslleyOut;
   } else if (selectedUser === 'Andreia') {
+    totalPrev = andreiaPrev;
     totalIn = andreiaIn;
     totalOut = andreiaOut;
   } else {
+    totalPrev = weslleyPrev + andreiaPrev;
     totalIn = weslleyIn + andreiaIn;
     totalOut = weslleyOut + andreiaOut;
   }
 
-  const balance = totalIn - totalOut;
-  const weslleyBalance = weslleyIn - weslleyOut;
-  const andreiaBalance = andreiaIn - andreiaOut;
+  // Saldo Final = Saldo Anterior + Entradas do Período - Saídas do Período
+  const balance = totalPrev + totalIn - totalOut;
+
+  const weslleyBalance = weslleyPrev + weslleyIn - weslleyOut;
+  const andreiaBalance = andreiaPrev + andreiaIn - andreiaOut;
+
+  const prevEl = document.getElementById('dash-prev');
+  if (prevEl) {
+    prevEl.innerText = formatCurrency(totalPrev);
+    prevEl.style.color = totalPrev >= 0 ? 'var(--green)' : 'var(--red)';
+  }
 
   document.getElementById('dash-in').innerText = formatCurrency(totalIn);
   document.getElementById('dash-out').innerText = formatCurrency(totalOut);
@@ -1280,8 +1313,10 @@ function renderDashboard() {
   if (filterLabel1) filterLabel1.innerText = labelText;
   if (filterLabel2) filterLabel2.innerText = labelText;
 
-  // Atualiza Cards Individuais
+  // Atualiza Cards Individuais das Carteiras
   if (document.getElementById('weslley-in')) {
+    const wPrevEl = document.getElementById('weslley-prev');
+    if (wPrevEl) wPrevEl.innerText = formatCurrency(weslleyPrev);
     document.getElementById('weslley-in').innerText = formatCurrency(weslleyIn);
     document.getElementById('weslley-out').innerText = formatCurrency(weslleyOut);
     const wBalEl = document.getElementById('weslley-balance');
@@ -1290,6 +1325,8 @@ function renderDashboard() {
   }
 
   if (document.getElementById('andreia-in')) {
+    const aPrevEl = document.getElementById('andreia-prev');
+    if (aPrevEl) aPrevEl.innerText = formatCurrency(andreiaPrev);
     document.getElementById('andreia-in').innerText = formatCurrency(andreiaIn);
     document.getElementById('andreia-out').innerText = formatCurrency(andreiaOut);
     const aBalEl = document.getElementById('andreia-balance');
@@ -1349,7 +1386,7 @@ function renderList() {
           <div class="${valClass}" style="font-weight: 800; font-size: 0.9em;">${valSign} ${formatCurrency(item.amount)}</div>
           <div style="margin-top: 4px;">
             <button class="btn-icon" onclick="showInstallments('${item.id}')" title="Ver Parcelas">🗓️</button>
-            <button class="btn-icon" onclick="editTransaction('${item.id}')" title="Editar">✏️</button>
+            <button class="btn-icon" onclick="editTransaction('${item.id}')" title="Editar">✏️️</button>
             <button class="btn-icon" onclick="deleteTransaction('${item.id}')" title="Excluir">🗑️</button>
           </div>
         </div>
