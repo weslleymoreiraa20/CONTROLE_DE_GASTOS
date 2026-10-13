@@ -566,6 +566,31 @@
     .btn-piggy-sub { background: var(--amber); color: white; }
     .btn-piggy-edit { background: var(--gray-200); color: var(--gray-700); }
     .btn-piggy:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ========================================== */
+    /* RESPONSIVIDADE ADICIONAL PARA CELULARES    */
+    /* ========================================== */
+    @media (max-width: 420px) {
+      body {
+        padding: 8px;
+      }
+      .card {
+        padding: 14px;
+      }
+      .dash-grid, 
+      div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+      .date-range-inputs {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    .report-table, .tabela-detalhes {
+      width: 100%;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
