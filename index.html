@@ -492,6 +492,13 @@
       text-transform: uppercase;
       font-size: 0.75em;
     }
+    .report-table tbody tr {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .report-table tbody tr:hover {
+      background-color: var(--gray-50);
+    }
     .chart-container {
       position: relative;
       margin: auto;
@@ -785,7 +792,7 @@
         <div class="piggy-actions">
           <button class="btn-piggy btn-piggy-add" onclick="updatePiggyAmount('ferias', 'add')">+ Guardar</button>
           <button class="btn-piggy btn-piggy-sub" onclick="updatePiggyAmount('ferias', 'sub')">- Retirar</button>
-          <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('ferias')">⚙️️ Meta</button>
+          <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('ferias')">⚙ Meta</button>
         </div>
       </div>
 
@@ -1388,7 +1395,7 @@ function renderList() {
           <div class="${valClass}" style="font-weight: 800; font-size: 0.9em;">${valSign} ${formatCurrency(item.amount)}</div>
           <div style="margin-top: 4px;">
             <button class="btn-icon" onclick="showInstallments('${item.id}')" title="Ver Parcelas">🗓️</button>
-            <button class="btn-icon" onclick="editTransaction('${item.id}')" title="Editar">✏️️</button>
+            <button class="btn-icon" onclick="editTransaction('${item.id}')" title="Editar">✏️</button>
             <button class="btn-icon" onclick="deleteTransaction('${item.id}')" title="Excluir">🗑️</button>
           </div>
         </div>
@@ -1481,7 +1488,19 @@ function renderReports() {
         backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6','#8B5CF6', '#EC4899', '#14B8A6', '#F97316','#06B6D4', '#6B7280']
       }]
     },
-    options: { responsive: true, maintainAspectRatio: false }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (event, elements) => {
+        if (elements && elements.length > 0) {
+          const index = elements[0].index;
+          const categoryName = categoryChartInstance.data.labels[index];
+          if (categoryName) {
+            abrirModalCategoria(categoryName);
+          }
+        }
+      }
+    }
   });
 
   const tableBody = document.getElementById('category-table-body');
@@ -1490,6 +1509,9 @@ function renderReports() {
     const val = categories[cat];
     const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : '0.0';
     const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.title = 'Clique para ver os detalhes desta categoria';
+    tr.onclick = () => abrirModalCategoria(cat);
     tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
     tableBody.appendChild(tr);
   });
@@ -1635,6 +1657,46 @@ function abrirModalDetalhes(tipoDesejado) {
         <td>${item.category || '-'}</td>
         <td>${normalizeUser(item.user) || '-'}</td>
         <td style="font-weight: bold; color: ${isIncome ? 'var(--green)' : 'var(--red)'};">
+          ${formatCurrency(item.amount)}
+        </td>
+        <td>
+          <span style="color: ${isPaid ? 'var(--green)' : 'var(--amber)'}; font-weight: 600;">
+            ${isPaid ? '✓ Pago' : '⏳ Pendente'}
+          </span>
+        </td>
+      `;
+      tabelaCorpo.appendChild(tr);
+    });
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function abrirModalCategoria(categoria) {
+  const modal = document.getElementById('modal-detalhes');
+  const titulo = document.getElementById('modal-titulo');
+  const tabelaCorpo = document.getElementById('modal-tabela-corpo');
+
+  titulo.innerText = `Gastos da Categoria: ${categoria}`;
+  tabelaCorpo.innerHTML = '';
+
+  const filtrados = getFilteredTransactions().filter(item => item.type === 'expense' && (item.category || 'Outros') === categoria);
+
+  if (filtrados.length === 0) {
+    tabelaCorpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--gray-400);">Nenhum gasto encontrado nesta categoria.</td></tr>`;
+  } else {
+    filtrados.forEach(item => {
+      const dateParts = item.date.split('-');
+      const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : item.date;
+      const isPaid = item.status === 'pago';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${formattedDate}</td>
+        <td>${item.description || '-'}</td>
+        <td>${item.category || '-'}</td>
+        <td>${normalizeUser(item.user) || '-'}</td>
+        <td style="font-weight: bold; color: var(--red);">
           ${formatCurrency(item.amount)}
         </td>
         <td>
