@@ -599,19 +599,21 @@
 <div id="login-overlay">
   <div class="login-card">
     <h2>🔒 Finanças do Casal</h2>
-    <p style="font-size: 0.9em; color: var(--gray-500); margin: 0;">Selecione o usuário e digite a senha</p>
-    <form id="login-form" onsubmit="validateLogin(event)">
-      <div style="text-align: left; margin-top: 12px;">
-        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Usuário</label>
-        <select id="login-user" required style="margin-top: 4px; font-weight: 600;">
-          <option value="Weslley">Weslley</option>
-          <option value="Andreia">Andreia</option>
-        </select>
-      </div>
-      <input type="password" id="login-pass" placeholder="****" required autocomplete="current-password" style="margin-top: 12px;">
-      <button type="submit" class="btn-primary">Entrar no App</button>
-    </form>
-    <p id="login-error" style="color: var(--red); font-size: 0.85em; display: none; margin-top: 12px; font-weight: 600;">Senha incorreta. Tente novamente.</p>
+    <p style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 16px 0;">Entre com sua conta Google para acessar</p>
+    
+    <div style="text-align: left; margin-bottom: 16px;">
+      <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Usuário Atual</label>
+      <select id="login-user" style="margin-top: 4px; font-weight: 600;">
+        <option value="Weslley">Weslley</option>
+        <option value="Andreia">Andreia</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn-primary" onclick="loginWithGoogle()" style="display: flex; align-items: center; justify-content: center; gap: 10px; background-color: #ffffff; color: #374151; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); width: 100%;">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.15v3.14C3.11 21.36 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24H6.62H1.15C.42 8.1 0 9.77 0 11.5s.42 3.4 1.15 4.88l4.12-3.14z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.11 2.64 1.15 6.62l4.12 3.14c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+      Entrar com o Google
+    </button>
+    <p id="login-error" style="color: var(--red); font-size: 0.85em; display: none; margin-top: 12px; font-weight: 600;"></p>
   </div>
 </div>
 
@@ -1189,32 +1191,27 @@ const emailMap = {
   'Andreia': 'andreia@financas.com'
 };
 
-// Função de login integrada ao Firebase Auth
-async function validateLogin(e) {
-  e.preventDefault();
-  const passInput = document.getElementById('login-pass').value;
+// Função de login com o Google
+async function loginWithGoogle() {
   const selectedUser = document.getElementById('login-user').value;
   const errorMsg = document.getElementById('login-error');
-  const email = emailMap[selectedUser];
+  const provider = new firebase.auth.GoogleAuthProvider();
 
   try {
-    // Autentica diretamente com o Firebase
-    await firebase.auth().signInWithEmailAndPassword(email, passInput);
+    const result = await firebase.auth().signInWithPopup(provider);
+    // Salva o usuário escolhido (Weslley ou Andreia) na sessão
     localStorage.setItem('active_user', selectedUser);
     errorMsg.style.display = 'none';
-    document.getElementById('login-pass').value = '';
-    // O onAuthStateChanged cuidará de atualizar a tela
   } catch (error) {
-    console.error("Erro na autenticação:", error);
+    console.error("Erro no login com Google:", error);
     errorMsg.style.display = 'block';
-    errorMsg.innerText = "E-mail ou senha incorretos.";
+    errorMsg.innerText = "Erro ao entrar com o Google: " + error.message;
   }
 }
 
 // Monitor de estado de autenticação do Firebase
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
-    // Usuário autenticado com sucesso
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
 
@@ -1225,7 +1222,6 @@ firebase.auth().onAuthStateChanged((user) => {
     const userFilterSelect = document.getElementById('filter-user');
     if (userFilterSelect) userFilterSelect.value = activeUser;
   } else {
-    // Usuário deslogado
     document.getElementById('login-overlay').style.display = 'flex';
     document.getElementById('app-container').style.display = 'none';
   }
