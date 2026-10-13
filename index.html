@@ -915,6 +915,7 @@
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
 // ==========================================
@@ -1180,6 +1181,63 @@ async function deleteTransaction(id) {
       alert("Erro ao apagar: " + error.message);
     }
   }
+}
+
+// Mapeamento dos usuários para os e-mails cadastrados no Firebase Auth
+const emailMap = {
+  'Weslley': 'weslley@financas.com',
+  'Andreia': 'andreia@financas.com'
+};
+
+// Função de login integrada ao Firebase Auth
+async function validateLogin(e) {
+  e.preventDefault();
+  const passInput = document.getElementById('login-pass').value;
+  const selectedUser = document.getElementById('login-user').value;
+  const errorMsg = document.getElementById('login-error');
+  const email = emailMap[selectedUser];
+
+  try {
+    // Autentica diretamente com o Firebase
+    await firebase.auth().signInWithEmailAndPassword(email, passInput);
+    localStorage.setItem('active_user', selectedUser);
+    errorMsg.style.display = 'none';
+    document.getElementById('login-pass').value = '';
+    // O onAuthStateChanged cuidará de atualizar a tela
+  } catch (error) {
+    console.error("Erro na autenticação:", error);
+    errorMsg.style.display = 'block';
+    errorMsg.innerText = "E-mail ou senha incorretos.";
+  }
+}
+
+// Monitor de estado de autenticação do Firebase
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    // Usuário autenticado com sucesso
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
+
+    const activeUser = localStorage.getItem('active_user') || 'Weslley';
+    const userFormSelect = document.getElementById('user');
+    if (userFormSelect) userFormSelect.value = activeUser;
+
+    const userFilterSelect = document.getElementById('filter-user');
+    if (userFilterSelect) userFilterSelect.value = activeUser;
+  } else {
+    // Usuário deslogado
+    document.getElementById('login-overlay').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+  }
+});
+
+// Função de logout atualizada
+function logout() {
+  firebase.auth().signOut().then(() => {
+    localStorage.removeItem('active_user');
+  }).catch((error) => {
+    console.error('Erro ao sair:', error);
+  });
 }
 
 // ==========================================
