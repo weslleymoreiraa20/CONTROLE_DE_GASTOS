@@ -991,7 +991,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 auth.onAuthStateChanged((user) => {
   if (user) {
-    // Caminho compartilhado para o casal
+    // Aponta para a base de dados unificada do casal
     db = firebase.database().ref('financeiro_casal/transacoes');
     dbCofrinhos = firebase.database().ref('financeiro_casal/cofrinhos');
 
