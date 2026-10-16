@@ -991,9 +991,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 auth.onAuthStateChanged((user) => {
   if (user) {
-    const uid = user.uid;
-    db = firebase.database().ref(`usuarios/${uid}/transacoes`);
-    dbCofrinhos = firebase.database().ref(`usuarios/${uid}/cofrinhos`);
+    // Caminho compartilhado para o casal
+    db = firebase.database().ref('financeiro_casal/transacoes');
+    dbCofrinhos = firebase.database().ref('financeiro_casal/cofrinhos');
 
     initDatabaseListeners();
     updateAuthUI(user);
