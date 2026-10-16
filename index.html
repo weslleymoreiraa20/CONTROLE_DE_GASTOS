@@ -980,9 +980,9 @@ function normalizeUser(user) {
 // AUTENTICAÇÃO FIREBASE E VÍNCULO COM GOOGLE
 // ==========================================
 
-// Ao carregar a página, verifica se há e-mail salvo para preenchimento automático
+// Ao carregar a página, define o e-mail do Weslley por padrão e gerencia o "Lembrar-me"
 window.addEventListener('DOMContentLoaded', () => {
-  const savedEmail = localStorage.getItem('saved_email');
+  const savedEmail = localStorage.getItem('saved_email') || 'weslleymoreiraa2.0@gmail.com';
   if (savedEmail) {
     document.getElementById('login-email').value = savedEmail;
     document.getElementById('remember-me').checked = true;
@@ -997,6 +997,16 @@ auth.onAuthStateChanged((user) => {
 
     initDatabaseListeners();
     updateAuthUI(user);
+
+    // Identifica automaticamente o usuário logado e seleciona no formulário
+    const userEmail = user.email ? user.email.toLowerCase() : '';
+    let activeUser = 'Weslley';
+    if (userEmail.includes('andreia')) {
+      activeUser = 'Andreia';
+    }
+    
+    const userFormSelect = document.getElementById('user');
+    if (userFormSelect) userFormSelect.value = activeUser;
 
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
@@ -1014,7 +1024,6 @@ function validateLogin(e) {
   const rememberMe = document.getElementById('remember-me').checked;
   const errorMsg = document.getElementById('login-error');
 
-  // Gerencia o salvamento do e-mail (Lembrar E-mail)
   if (rememberMe) {
     localStorage.setItem('saved_email', email);
   } else {
@@ -1255,6 +1264,14 @@ function resetForm() {
   document.getElementById('installments-wrapper').style.display = 'block';
   document.getElementById('date').value = formatDateInput(new Date());
   document.getElementById('is-paid').checked = true;
+  
+  // Mantém o usuário padrão de acordo com o e-mail ativo
+  const user = auth.currentUser;
+  if (user && user.email && user.email.toLowerCase().includes('andreia')) {
+    document.getElementById('user').value = 'Andreia';
+  } else {
+    document.getElementById('user').value = 'Weslley';
+  }
 }
 
 async function deleteTransaction(id) {
@@ -1631,13 +1648,18 @@ async function updatePiggyAmount(key, action) {
   const val = parseFloat(valStr.replace('.', '').replace(',', '.'));
   if (isNaN(val) || val <= 0) return alert("Valor inválido.");
 
+  // Identifica o usuário logado para associar ao cofrinho
+  const currentUser = auth.currentUser;
+  const emailUser = currentUser && currentUser.email ? currentUser.email.toLowerCase() : '';
+  const activeUser = emailUser.includes('andreia') ? 'Andreia' : 'Weslley';
+
   const payload = {
     description: `Cofrinho: ${label}`,
     amount: val,
     date: formatDateInput(new Date()),
     category: 'Cofrinho',
     type: action === 'add' ? 'expense' : 'income',
-    user: 'Weslley',
+    user: activeUser,
     status: 'pago',
     createdAt: Date.now()
   };
