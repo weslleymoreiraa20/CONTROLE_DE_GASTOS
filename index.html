@@ -597,13 +597,19 @@
     <form id="login-form" onsubmit="validateLogin(event)">
       <div style="text-align: left;">
         <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">E-mail</label>
-        <input type="email" id="login-email" placeholder="seu@email.com" required style="margin-top: 4px;">
+        <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required style="margin-top: 4px;">
       </div>
       <div style="text-align: left; margin-top: 10px;">
         <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Senha</label>
-        <input type="password" id="login-pass" placeholder="••••••••" required style="margin-top: 4px;">
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required style="margin-top: 4px;">
       </div>
       
+      <!-- Opção de Lembrar-me -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; text-align: left;">
+        <input type="checkbox" id="remember-me" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+        <label for="remember-me" style="font-size: 0.85em; color: var(--gray-700); font-weight: 600; cursor: pointer;">Lembrar meu e-mail</label>
+      </div>
+
       <div style="text-align: right; margin-top: 4px;">
         <a href="#" onclick="resetPassword(event)" style="font-size: 0.75em; color: var(--primary); text-decoration: none; font-weight: 600;">Esqueceu a senha?</a>
       </div>
@@ -930,6 +936,12 @@ const firebaseConfig = {
 // 1. Inicializa o Firebase PRIMEIRO
 firebase.initializeApp(firebaseConfig);
 
+// Configura a persistência local do Firebase (Manter Conectado)
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .catch((error) => {
+    console.error("Erro na persistência de autenticação:", error);
+  });
+
 // 2. Declarações dos serviços após a inicialização
 const auth = firebase.auth();
 const provider = new firebase.auth.GoogleAuthProvider();
@@ -968,6 +980,15 @@ function normalizeUser(user) {
 // AUTENTICAÇÃO FIREBASE E VÍNCULO COM GOOGLE
 // ==========================================
 
+// Ao carregar a página, verifica se há e-mail salvo para preenchimento automático
+window.addEventListener('DOMContentLoaded', () => {
+  const savedEmail = localStorage.getItem('saved_email');
+  if (savedEmail) {
+    document.getElementById('login-email').value = savedEmail;
+    document.getElementById('remember-me').checked = true;
+  }
+});
+
 auth.onAuthStateChanged((user) => {
   if (user) {
     const uid = user.uid;
@@ -980,7 +1001,6 @@ auth.onAuthStateChanged((user) => {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
   } else {
-    // Mantém a tela de login visível caso não esteja autenticado
     document.getElementById('login-overlay').style.display = 'flex';
     document.getElementById('app-container').style.display = 'none';
   }
@@ -991,7 +1011,15 @@ function validateLogin(e) {
   e.preventDefault();
   const email = document.getElementById('login-email').value;
   const pass = document.getElementById('login-pass').value;
+  const rememberMe = document.getElementById('remember-me').checked;
   const errorMsg = document.getElementById('login-error');
+
+  // Gerencia o salvamento do e-mail (Lembrar E-mail)
+  if (rememberMe) {
+    localStorage.setItem('saved_email', email);
+  } else {
+    localStorage.removeItem('saved_email');
+  }
 
   auth.signInWithEmailAndPassword(email, pass)
     .then((userCredential) => {
@@ -1017,7 +1045,7 @@ function loginWithGoogle() {
 // Sistema de Recuperação de Senha por E-mail
 function resetPassword(e) {
   e.preventDefault();
-  const email = prompt("Digite o e-mail cadastrado para receber o link de recuperação:");
+  const email = document.getElementById('login-email').value || prompt("Digite o e-mail cadastrado para receber o link de recuperação:");
   if (!email) return;
 
   auth.sendPasswordResetEmail(email)
