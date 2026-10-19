@@ -580,7 +580,7 @@
 <div id="login-overlay">
   <div class="login-card">
     <h2>🔒 Finanças do Casal</h2>
-    <p style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 16px 0;">Entre com sua conta ou Google</p>
+    <p style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 16px 0;">Entre com weslley ou andreia</p>
     
     <!-- Botão de Login com Google -->
     <button type="button" onclick="loginWithGoogle()" style="background: #ffffff; color: #374151; border: 1px solid var(--gray-200); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px;">
@@ -590,24 +590,24 @@
 
     <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--gray-400); font-size: 0.8em;">
       <hr style="flex: 1; border: none; border-top: 1px solid var(--gray-200);">
-      <span style="padding: 0 8px;">ou e-mail</span>
+      <span style="padding: 0 8px;">ou usuário</span>
       <hr style="flex: 1; border: none; border-top: 1px solid var(--gray-200);">
     </div>
 
     <form id="login-form" onsubmit="validateLogin(event)">
       <div style="text-align: left;">
-        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">E-mail</label>
-        <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required style="margin-top: 4px;">
+        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Usuário</label>
+        <input type="text" id="login-email" placeholder="weslley ou andreia" autocomplete="username" required style="margin-top: 4px;">
       </div>
       <div style="text-align: left; margin-top: 10px;">
         <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Senha</label>
-        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required style="margin-top: 4px;">
+        <input type="password" id="login-pass" placeholder="••••" autocomplete="current-password" required style="margin-top: 4px;">
       </div>
       
       <!-- Opção de Lembrar-me -->
       <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; text-align: left;">
         <input type="checkbox" id="remember-me" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
-        <label for="remember-me" style="font-size: 0.85em; color: var(--gray-700); font-weight: 600; cursor: pointer;">Lembrar meu e-mail</label>
+        <label for="remember-me" style="font-size: 0.85em; color: var(--gray-700); font-weight: 600; cursor: pointer;">Lembrar meu usuário</label>
       </div>
 
       <div style="text-align: right; margin-top: 4px;">
@@ -980,28 +980,27 @@ function normalizeUser(user) {
 // AUTENTICAÇÃO FIREBASE E VÍNCULO COM GOOGLE
 // ==========================================
 
-// Ao carregar a página, define o e-mail do Weslley por padrão e gerencia o "Lembrar-me"
+// Ao carregar a página, define o usuário salvo no "Lembrar-me"
 window.addEventListener('DOMContentLoaded', () => {
-  const savedEmail = localStorage.getItem('saved_email') || 'weslleymoreiraa2.0@gmail.com';
-  if (savedEmail) {
-    document.getElementById('login-email').value = savedEmail;
+  const savedUser = localStorage.getItem('saved_login_user') || 'weslley';
+  if (savedUser) {
+    document.getElementById('login-email').value = savedUser;
     document.getElementById('remember-me').checked = true;
   }
 });
 
 auth.onAuthStateChanged((user) => {
   if (user) {
-    // Aponta para a base de dados unificada do casal
     db = firebase.database().ref('financeiro_casal/transacoes');
     dbCofrinhos = firebase.database().ref('financeiro_casal/cofrinhos');
 
     initDatabaseListeners();
     updateAuthUI(user);
 
-    // Identifica automaticamente o usuário logado e seleciona no formulário
+    const userInputVal = document.getElementById('login-email')?.value.trim().toLowerCase() || '';
     const userEmail = user.email ? user.email.toLowerCase() : '';
     let activeUser = 'Weslley';
-    if (userEmail.includes('andreia')) {
+    if (userInputVal.includes('andreia') || userEmail.includes('andreia')) {
       activeUser = 'Andreia';
     }
     
@@ -1016,18 +1015,27 @@ auth.onAuthStateChanged((user) => {
   }
 });
 
-// Login com E-mail e Senha
+// Login com Usuário (weslley / andreia) e Senha (1234)
 function validateLogin(e) {
   e.preventDefault();
-  const email = document.getElementById('login-email').value;
-  const pass = document.getElementById('login-pass').value;
+  let userInput = document.getElementById('login-email').value.trim().toLowerCase();
+  let pass = document.getElementById('login-pass').value;
   const rememberMe = document.getElementById('remember-me').checked;
   const errorMsg = document.getElementById('login-error');
 
+  let email = 'weslleymoreiraa2.0@gmail.com';
+  if (userInput === 'andreia' || userInput === 'weslley' || userInput.includes('@')) {
+    email = 'weslleymoreiraa2.0@gmail.com';
+  }
+
+  if (pass === '1234') {
+    pass = '123456';
+  }
+
   if (rememberMe) {
-    localStorage.setItem('saved_email', email);
+    localStorage.setItem('saved_login_user', userInput);
   } else {
-    localStorage.removeItem('saved_email');
+    localStorage.removeItem('saved_login_user');
   }
 
   auth.signInWithEmailAndPassword(email, pass)
@@ -1035,7 +1043,7 @@ function validateLogin(e) {
       errorMsg.style.display = 'none';
     })
     .catch((error) => {
-      errorMsg.innerText = "E-mail ou senha incorretos.";
+      errorMsg.innerText = "Usuário ou senha incorretos.";
       errorMsg.style.display = 'block';
     });
 }
@@ -1054,12 +1062,12 @@ function loginWithGoogle() {
 // Sistema de Recuperação de Senha por E-mail
 function resetPassword(e) {
   e.preventDefault();
-  const email = document.getElementById('login-email').value || prompt("Digite o e-mail cadastrado para receber o link de recuperação:");
+  const email = prompt("Digite o e-mail cadastrado (weslleymoreiraa2.0@gmail.com) para receber o link de recuperação:");
   if (!email) return;
 
   auth.sendPasswordResetEmail(email)
     .then(() => {
-      alert("E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada (e spam).");
+      alert("E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.");
     })
     .catch((error) => {
       alert("Erro ao enviar e-mail de recuperação: " + error.message);
@@ -1068,39 +1076,11 @@ function resetPassword(e) {
 
 function updateAuthUI(user) {
   const accountStatusEl = document.getElementById('account-status');
-  if (user.isAnonymous) {
-    accountStatusEl.innerHTML = `
-      <div style="background: var(--amber-light); border: 1px solid rgba(245, 158, 11, 0.3); padding: 10px 14px; border-radius: var(--radius-md); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85em;">
-        <span style="color: #B45309; font-weight: 600;">⚠️ Modo Convidado (Dados locais temporários)</span>
-        <button onclick="linkGoogleAccount()" style="width: auto; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer;">Vincular com o Google</button>
-      </div>
-    `;
-  } else {
-    accountStatusEl.innerHTML = `
-      <div style="background: var(--green-light); border: 1px solid rgba(16, 185, 129, 0.3); padding: 10px 14px; border-radius: var(--radius-md); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85em;">
-        <span style="color: #047857; font-weight: 600;">✅ Conta Conectada: ${user.email || user.displayName || 'Google'}</span>
-      </div>
-    `;
-  }
-}
-
-function linkGoogleAccount() {
-  const user = auth.currentUser;
-  if (user && user.isAnonymous) {
-    user.linkWithPopup(provider)
-      .then((result) => {
-        alert("Conta vinculada com sucesso ao Google!");
-        updateAuthUI(result.user);
-      })
-      .catch((error) => {
-        console.error("Erro ao vincular conta:", error);
-        if (error.code === 'auth/credential-already-in-use') {
-          alert("Esta conta do Google já está associada a outro usuário.");
-        } else {
-          alert("Erro ao vincular conta: " + error.message);
-        }
-      });
-  }
+  accountStatusEl.innerHTML = `
+    <div style="background: var(--green-light); border: 1px solid rgba(16, 185, 129, 0.3); padding: 10px 14px; border-radius: var(--radius-md); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85em;">
+      <span style="color: #047857; font-weight: 600;">✅ Sessão Ativa (${user.email || 'Conectado'})</span>
+    </div>
+  `;
 }
 
 function logout() {
@@ -1265,9 +1245,8 @@ function resetForm() {
   document.getElementById('date').value = formatDateInput(new Date());
   document.getElementById('is-paid').checked = true;
   
-  // Mantém o usuário padrão de acordo com o e-mail ativo
-  const user = auth.currentUser;
-  if (user && user.email && user.email.toLowerCase().includes('andreia')) {
+  const userInputVal = document.getElementById('login-email').value.trim().toLowerCase();
+  if (userInputVal.includes('andreia')) {
     document.getElementById('user').value = 'Andreia';
   } else {
     document.getElementById('user').value = 'Weslley';
@@ -1648,10 +1627,8 @@ async function updatePiggyAmount(key, action) {
   const val = parseFloat(valStr.replace('.', '').replace(',', '.'));
   if (isNaN(val) || val <= 0) return alert("Valor inválido.");
 
-  // Identifica o usuário logado para associar ao cofrinho
-  const currentUser = auth.currentUser;
-  const emailUser = currentUser && currentUser.email ? currentUser.email.toLowerCase() : '';
-  const activeUser = emailUser.includes('andreia') ? 'Andreia' : 'Weslley';
+  const userInputVal = document.getElementById('login-email').value.trim().toLowerCase();
+  const activeUser = userInputVal.includes('andreia') ? 'Andreia' : 'Weslley';
 
   const payload = {
     description: `Cofrinho: ${label}`,
