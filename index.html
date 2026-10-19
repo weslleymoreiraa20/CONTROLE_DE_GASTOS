@@ -5,7 +5,7 @@
   <meta name="theme-color" content="#4F46E5">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finanças do Casal</title>
+  <title>Controle Financeiro Pessoal</title>
 
   <!-- Fonte Google Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,10 +37,6 @@
       --amber-light: #FFFBEB;
       --bg: #F8FAFC;
       --surface: #FFFFFF;
-      --weslley-color: #3B82F6;
-      --andreia-color: #EC4899;
-      --ele-color: #3B82F6;
-      --ela-color: #EC4899;
       --gray-50: #F9FAFB;
       --gray-100: #F3F4F6;
       --gray-200: #E5E7EB;
@@ -70,7 +66,7 @@
       line-height: 1.5;
     }
 
-    /* TELA DE LOADING DE AUTENTICAÇÃO */
+    /* TELA DE LOGIN E CADASTRO */
     #login-overlay {
       position: fixed;
       top: 0;
@@ -93,13 +89,13 @@
       box-shadow: var(--shadow-lg);
       border: 1px solid var(--gray-200);
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       text-align: center;
     }
 
     .login-card h2 {
-      margin: 0 0 6px 0;
-      font-size: 1.3em;
+      margin: 0 0 4px 0;
+      font-size: 1.4em;
       color: var(--gray-900);
     }
      
@@ -207,9 +203,7 @@
       padding: 16px;
     }
 
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .modal-content, .modal-card {
       background: var(--surface);
@@ -255,22 +249,18 @@
     }
     .btn-fechar:hover, .btn-close:hover { background: var(--gray-200); color: var(--gray-900); }
 
-    .modal-body {
-      overflow-y: auto;
-    }
+    .modal-body { overflow-y: auto; }
 
     .tabela-detalhes {
       width: 100%;
       border-collapse: collapse;
     }
-
     .tabela-detalhes th, .tabela-detalhes td {
       padding: 10px;
       text-align: left;
       border-bottom: 1px solid var(--gray-100);
       font-size: 0.85rem;
     }
-
     .tabela-detalhes th {
       background-color: var(--gray-50);
       color: var(--gray-500);
@@ -301,9 +291,7 @@
       padding: 8px 0;
       border-bottom: 1px dashed rgba(245, 158, 11, 0.3);
     }
-    .reminder-item:last-child {
-      border-bottom: none;
-    }
+    .reminder-item:last-child { border-bottom: none; }
     .overdue-text { color: var(--red); font-weight: 700; }
     .due-soon-text { color: #D97706; font-weight: 700; }
 
@@ -366,9 +354,7 @@
       border: 1px solid var(--gray-200);
       transition: background 0.2s;
     }
-    .dash-item:hover {
-      background: var(--gray-100);
-    }
+    .dash-item:hover { background: var(--gray-100); }
     .dash-item span {
       display: block;
       font-size: 0.7em;
@@ -449,9 +435,8 @@
       font-size: 0.7em;
       color: white;
       font-weight: 700;
+      background-color: var(--primary);
     }
-    .badge-weslley, .badge-ele { background-color: var(--weslley-color); }
-    .badge-andreia, .badge-ela { background-color: var(--andreia-color); }
     .badge-cat { background-color: var(--gray-100); color: var(--gray-700); }
     .item-date { font-size: 0.75em; color: var(--gray-400); font-weight: 500; }
     .btn-icon {
@@ -495,9 +480,7 @@
       cursor: pointer;
       transition: background-color 0.2s;
     }
-    .report-table tbody tr:hover {
-      background-color: var(--gray-50);
-    }
+    .report-table tbody tr:hover { background-color: var(--gray-50); }
     .chart-container {
       position: relative;
       margin: auto;
@@ -576,45 +559,56 @@
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
+<!-- TELA DE LOGIN / CADASTRO -->
 <div id="login-overlay">
   <div class="login-card">
-    <h2>🔒 Finanças do Casal</h2>
-    <p style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 16px 0;">Entre com weslley ou andreia</p>
+    <h2>💰 Meu Controle</h2>
+    <p id="login-subtitle" style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 14px 0;">Acesse sua carteira pessoal</p>
     
-    <!-- Botão de Login com Google -->
-    <button type="button" onclick="loginWithGoogle()" style="background: #ffffff; color: #374151; border: 1px solid var(--gray-200); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px;">
+    <!-- Abas Entrar / Criar Conta -->
+    <div style="display: flex; background: var(--gray-100); padding: 4px; border-radius: var(--radius-sm); margin-bottom: 14px;">
+      <button type="button" id="tab-login" onclick="switchAuthMode('login')" style="flex: 1; padding: 6px; border: none; background: var(--surface); font-weight: 700; font-size: 0.85em; border-radius: 6px; cursor: pointer; color: var(--primary);">Entrar</button>
+      <button type="button" id="tab-register" onclick="switchAuthMode('register')" style="flex: 1; padding: 6px; border: none; background: transparent; font-weight: 700; font-size: 0.85em; border-radius: 6px; cursor: pointer; color: var(--gray-500);">Criar Conta</button>
+    </div>
+
+    <!-- Botão Google -->
+    <button type="button" onclick="loginWithGoogle()" style="background: #ffffff; color: #374151; border: 1px solid var(--gray-200); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%; padding: 10px; border-radius: var(--radius-md); cursor: pointer;">
       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.21 21.34 7.32 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 11.7s.43 3.57 1.19 5.1l4.08-2.56z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.32 0 3.21 2.66 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
-      Entrar com o Google
+      Continuar com o Google
     </button>
 
-    <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--gray-400); font-size: 0.8em;">
+    <div style="display: flex; align-items: center; text-align: center; margin: 10px 0; color: var(--gray-400); font-size: 0.8em;">
       <hr style="flex: 1; border: none; border-top: 1px solid var(--gray-200);">
-      <span style="padding: 0 8px;">ou usuário</span>
+      <span style="padding: 0 6px;">ou e-mail</span>
       <hr style="flex: 1; border: none; border-top: 1px solid var(--gray-200);">
     </div>
 
-    <form id="login-form" onsubmit="validateLogin(event)">
+    <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+      <!-- Campo Nome da Carteira (Aparece apenas no Cadastro) -->
+      <div id="name-field-container" style="text-align: left; display: none; margin-bottom: 10px;">
+        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Nome da Carteira / Usuário</label>
+        <input type="text" id="register-name" placeholder="Ex: Maria Silva" style="margin-top: 4px;">
+      </div>
+
       <div style="text-align: left;">
-        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Usuário</label>
-        <input type="text" id="login-email" placeholder="weslley ou andreia" autocomplete="username" required style="margin-top: 4px;">
+        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">E-mail</label>
+        <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email" required style="margin-top: 4px;">
       </div>
       <div style="text-align: left; margin-top: 10px;">
         <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Senha</label>
-        <input type="password" id="login-pass" placeholder="••••" autocomplete="current-password" required style="margin-top: 4px;">
+        <input type="password" id="auth-pass" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required style="margin-top: 4px;">
       </div>
-      
-      <!-- Opção de Lembrar-me -->
+
       <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; text-align: left;">
         <input type="checkbox" id="remember-me" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
-        <label for="remember-me" style="font-size: 0.85em; color: var(--gray-700); font-weight: 600; cursor: pointer;">Lembrar meu usuário</label>
+        <label for="remember-me" style="font-size: 0.85em; color: var(--gray-700); font-weight: 600; cursor: pointer;">Lembrar meu e-mail</label>
       </div>
 
       <div style="text-align: right; margin-top: 4px;">
         <a href="#" onclick="resetPassword(event)" style="font-size: 0.75em; color: var(--primary); text-decoration: none; font-weight: 600;">Esqueceu a senha?</a>
       </div>
 
-      <button type="submit" class="btn-primary" style="margin-top: 12px;">Entrar</button>
+      <button type="submit" id="auth-submit-btn" class="btn-primary" style="margin-top: 12px; width: 100%;">Entrar</button>
     </form>
     <p id="login-error" style="color: var(--red); font-size: 0.85em; display: none; margin-top: 12px; font-weight: 600;"></p>
   </div>
@@ -625,12 +619,11 @@
 
   <div class="header-top">
     <div class="header-brand">
-      ❤️ Nosso Controle <span>Weslley & Andreia</span>
+      💳 Carteira de <span id="user-wallet-name" style="background: var(--primary-light); color: var(--primary); padding: 4px 8px; border-radius: var(--radius-sm); font-size: 0.9em;">Minha Carteira</span>
     </div>
     <button class="btn-logout" onclick="logout()">Sair 🔒</button>
   </div>
 
-  <!-- STATUS DA CONTA E VÍNCULO COM O GOOGLE -->
   <div id="account-status"></div>
 
   <nav class="main-nav">
@@ -656,55 +649,23 @@
           <input type="date" id="filter-end" onchange="customDateChanged()">
         </div>
       </div>
-      <div style="margin-top: 6px;">
-        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Filtrar por Carteira:</label>
-        <select id="filter-user" onchange="refreshDataViews()" style="margin-top: 4px;">
-          <option value="all">Todas as Carteiras (Geral)</option>
-          <option value="Weslley">Carteira de Weslley</option>
-          <option value="Andreia">Carteira de Andreia</option>
-        </select>
-      </div>
     </div>
 
-    <!-- CARDS SEPARADOS DE CARTEIRA -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-      <div style="background: #F0F7FF; border: 1px solid #BFDBFE; border-radius: var(--radius-md); padding: 10px; text-align: center;">
-        <div style="font-size: 0.8em; font-weight: 700; color: var(--weslley-color);">💳 Carteira Weslley</div>
-        <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
-          Anterior: <span id="weslley-prev" style="font-weight:700;">R$ 0,00</span>
-        </div>
-        <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
-          +<span id="weslley-in" class="val-in">R$ 0,00</span> | -<span id="weslley-out" class="val-out">R$ 0,00</span>
-        </div>
-        <div style="font-size: 0.95em; font-weight: 800; margin-top: 4px;" id="weslley-balance">R$ 0,00</div>
-      </div>
-      <div style="background: #FDF2F8; border: 1px solid #FBCFE8; border-radius: var(--radius-md); padding: 10px; text-align: center;">
-        <div style="font-size: 0.8em; font-weight: 700; color: var(--andreia-color);">💳 Carteira Andreia</div>
-        <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
-          Anterior: <span id="andreia-prev" style="font-weight:700;">R$ 0,00</span>
-        </div>
-        <div style="font-size: 0.7em; color: var(--gray-500); margin-top: 2px;">
-          +<span id="andreia-in" class="val-in">R$ 0,00</span> | -<span id="andreia-out" class="val-out">R$ 0,00</span>
-        </div>
-        <div style="font-size: 0.95em; font-weight: 800; margin-top: 4px;" id="andreia-balance">R$ 0,00</div>
-      </div>
-    </div>
-
-    <!-- GRID RESUMO GERAL -->
-    <div class="dash-grid">
+    <!-- GRID RESUMO FINANCEIRO -->
+    <div class="dash-grid" style="grid-template-columns: repeat(2, 1fr);">
       <div class="dash-item" title="Saldo trazido de meses anteriores">
         <span>Saldo Anterior</span>
         <strong id="dash-prev" style="color: var(--gray-700);">R$ 0,00</strong>
       </div>
-      <div class="dash-item" onclick="abrirModalDetalhes('entrada')" style="cursor: pointer;" title="Clique para ver detalhes de entradas">
-        <span>Entradas (<span id="dash-filter-label">Geral</span>)</span>
+      <div class="dash-item" onclick="abrirModalDetalhes('entrada')" style="cursor: pointer;" title="Clique para ver entradas">
+        <span>Entradas</span>
         <strong id="dash-in" class="val-in">R$ 0,00</strong>
       </div>
-      <div class="dash-item" onclick="abrirModalDetalhes('saida')" style="cursor: pointer;" title="Clique para ver detalhes de saídas">
-        <span>Saídas (<span id="dash-filter-label-2">Geral</span>)</span>
+      <div class="dash-item" onclick="abrirModalDetalhes('saida')" style="cursor: pointer;" title="Clique para ver saídas">
+        <span>Saídas</span>
         <strong id="dash-out" class="val-out">R$ 0,00</strong>
       </div>
-      <div class="dash-item" onclick="filterByTypeAndMonth('all')" style="cursor: pointer;" title="Exibir todos os lançamentos">
+      <div class="dash-item" onclick="filterByTypeAndMonth('all')" style="cursor: pointer;" title="Saldo total acumulado">
         <span>Saldo Acumulado</span>
         <strong id="dash-balance">R$ 0,00</strong>
       </div>
@@ -723,7 +684,7 @@
       <h3 id="form-title" style="margin-top:0; font-size: 1.15em; color: var(--gray-900);">Novo Lançamento</h3>
       <form id="finance-form">
         <input type="hidden" id="edit-id" value="">
-        <input type="text" id="description" placeholder="Descrição (ex: Mercado, Cartão Nubank)" required>
+        <input type="text" id="description" placeholder="Descrição (ex: Mercado, Salário, Aluguel)" required>
         
         <div style="display: flex; gap: 10px; margin-top: 8px;">
           <div style="flex: 2;">
@@ -739,13 +700,8 @@
               <option value="4">4x</option>
               <option value="5">5x</option>
               <option value="6">6x</option>
-              <option value="7">7x</option>
-              <option value="8">8x</option>
-              <option value="9">9x</option>
               <option value="10">10x</option>
-              <option value="11">11x</option>
               <option value="12">12x</option>
-              <option value="18">18x</option>
               <option value="24">24x</option>
               <option value="36">36x</option>
               <option value="48">48x</option>
@@ -767,7 +723,7 @@
           <option value="Transporte">🚗 Transporte / Combustível</option>
           <option value="Lazer">🎉 Lazer / Viagens</option>
           <option value="Saúde">💊 Saúde / Farmácia</option>
-          <option value="Educação">🎓 Educação / Creche</option>
+          <option value="Educação">🎓 Educação / Cursos</option>
           <option value="Telefonia">📱 Telefonia / Internet</option>
           <option value="Salário">💵 Salário / Renda</option>
           <option value="Cofrinho">🐷 Cofrinho / Investimento</option>
@@ -777,11 +733,7 @@
         <div style="display: flex; gap: 10px; margin-top: 10px;">
           <select id="type">
             <option value="expense">Saída (Gasto)</option>
-            <option value="income">Entrada (Salário)</option>
-          </select>
-          <select id="user">
-            <option value="Weslley">Lançado por: Weslley</option>
-            <option value="Andreia">Lançado por: Andreia</option>
+            <option value="income">Entrada (Receita)</option>
           </select>
         </div>
 
@@ -806,11 +758,11 @@
   <!-- VISÃO DE COFRINHOS -->
   <div id="view-cofrinhos" class="view-content">
     <div class="card">
-      <h3 style="margin-top:0; font-size: 1.15em; color: var(--gray-900);">Nossos Cofrinhos 🎯</h3>
+      <h3 style="margin-top:0; font-size: 1.15em; color: var(--gray-900);">Meus Cofrinhos 🎯</h3>
 
       <div class="piggy-card">
         <div class="piggy-header">
-          <span class="piggy-title">✈️ Férias</span>
+          <span class="piggy-title">✈️ Viagem / Férias</span>
           <strong id="ferias-percent" style="color: var(--primary);">0%</strong>
         </div>
         <div class="progress-bar-bg">
@@ -867,13 +819,6 @@
         <tbody id="category-table-body"></tbody>
       </table>
     </div>
-
-    <div class="card">
-      <h3 style="margin-top:0; font-size: 1.15em; color: var(--gray-900);">Divisão de Gastos: Weslley vs Andreia</h3>
-      <div class="chart-container">
-        <canvas id="userChart"></canvas>
-      </div>
-    </div>
   </div>
 
 </div>
@@ -892,7 +837,6 @@
             <th>Data</th>
             <th>Descrição</th>
             <th>Categoria</th>
-            <th>Quem</th>
             <th>Valor</th>
             <th>Status</th>
           </tr>
@@ -933,16 +877,13 @@ const firebaseConfig = {
   measurementId: "G-BDNFDGBBEQ"
 };
 
-// 1. Inicializa o Firebase PRIMEIRO
 firebase.initializeApp(firebaseConfig);
 
-// Configura a persistência local do Firebase (Manter Conectado)
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
   .catch((error) => {
     console.error("Erro na persistência de autenticação:", error);
   });
 
-// 2. Declarações dos serviços após a inicialização
 const auth = firebase.auth();
 const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -957,8 +898,8 @@ let piggyData = {
 
 let activeView = 'lancamentos';
 let categoryChartInstance = null;
-let userChartInstance = null;
 let activeTypeFilter = 'all';
+let isRegisterMode = false;
 
 const form = document.getElementById('finance-form');
 const listEl = document.getElementById('transaction-list');
@@ -969,44 +910,67 @@ const editIdInput = document.getElementById('edit-id');
 const filterStart = document.getElementById('filter-start');
 const filterEnd = document.getElementById('filter-end');
 
-function normalizeUser(user) {
-  if (!user) return 'Weslley';
-  if (user === 'Ele') return 'Weslley';
-  if (user === 'Ela') return 'Andreia';
-  return user;
-}
-
 // ==========================================
-// AUTENTICAÇÃO FIREBASE E VÍNCULO COM GOOGLE
+// AUTENTICAÇÃO E MODOS (ENTRAR / CADASTRAR)
 // ==========================================
 
-// Ao carregar a página, define o usuário salvo no "Lembrar-me"
 window.addEventListener('DOMContentLoaded', () => {
-  const savedUser = localStorage.getItem('saved_login_user') || 'weslley';
-  if (savedUser) {
-    document.getElementById('login-email').value = savedUser;
+  const savedEmail = localStorage.getItem('saved_login_email');
+  if (savedEmail) {
+    document.getElementById('auth-email').value = savedEmail;
     document.getElementById('remember-me').checked = true;
   }
 });
 
+function switchAuthMode(mode) {
+  isRegisterMode = (mode === 'register');
+  const tabLogin = document.getElementById('tab-login');
+  const tabRegister = document.getElementById('tab-register');
+  const nameContainer = document.getElementById('name-field-container');
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const subtitle = document.getElementById('login-subtitle');
+  const errorMsg = document.getElementById('login-error');
+  errorMsg.style.display = 'none';
+
+  if (isRegisterMode) {
+    tabRegister.style.background = 'var(--surface)';
+    tabRegister.style.color = 'var(--primary)';
+    tabLogin.style.background = 'transparent';
+    tabLogin.style.color = 'var(--gray-500)';
+    nameContainer.style.display = 'block';
+    document.getElementById('register-name').required = true;
+    submitBtn.innerText = 'Criar Conta';
+    subtitle.innerText = 'Cadastre-se para criar sua carteira';
+  } else {
+    tabLogin.style.background = 'var(--surface)';
+    tabLogin.style.color = 'var(--primary)';
+    tabRegister.style.background = 'transparent';
+    tabRegister.style.color = 'var(--gray-500)';
+    nameContainer.style.display = 'none';
+    document.getElementById('register-name').required = false;
+    submitBtn.innerText = 'Entrar';
+    subtitle.innerText = 'Acesse sua carteira pessoal';
+  }
+}
+
 auth.onAuthStateChanged((user) => {
   if (user) {
-    // Isola os dados utilizando o UID exclusivo do usuário autenticado
+    // Banco de dados isolado por UID do usuário
     db = firebase.database().ref(`usuarios/${user.uid}/transacoes`);
     dbCofrinhos = firebase.database().ref(`usuarios/${user.uid}/cofrinhos`);
 
     initDatabaseListeners();
     updateAuthUI(user);
 
-    const userInputVal = document.getElementById('login-email')?.value.trim().toLowerCase() || '';
-    const userEmail = user.email ? user.email.toLowerCase() : '';
-    let activeUser = 'Weslley';
-    if (userInputVal.includes('andreia') || userEmail.includes('andreia')) {
-      activeUser = 'Andreia';
+    // Define nome da carteira (displayName ou parte do e-mail)
+    let walletName = user.displayName;
+    if (!walletName && user.email) {
+      walletName = user.email.split('@')[0];
+      walletName = walletName.charAt(0).toUpperCase() + walletName.slice(1);
     }
-    
-    const userFormSelect = document.getElementById('user');
-    if (userFormSelect) userFormSelect.value = activeUser;
+    if (!walletName) walletName = "Minha Carteira";
+
+    document.getElementById('user-wallet-name').innerText = walletName;
 
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
@@ -1016,40 +980,44 @@ auth.onAuthStateChanged((user) => {
   }
 });
 
-// Login com Usuário (weslley / andreia) e Senha (1234)
-function validateLogin(e) {
+function handleAuthSubmit(e) {
   e.preventDefault();
-  let userInput = document.getElementById('login-email').value.trim().toLowerCase();
-  let pass = document.getElementById('login-pass').value;
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
   const rememberMe = document.getElementById('remember-me').checked;
   const errorMsg = document.getElementById('login-error');
 
-  let email = 'weslleymoreiraa2.0@gmail.com';
-  if (userInput === 'andreia' || userInput === 'weslley' || userInput.includes('@')) {
-    email = 'weslleymoreiraa2.0@gmail.com';
-  }
-
-  if (pass === '1234') {
-    pass = '123456';
-  }
-
   if (rememberMe) {
-    localStorage.setItem('saved_login_user', userInput);
+    localStorage.setItem('saved_login_email', email);
   } else {
-    localStorage.removeItem('saved_login_user');
+    localStorage.removeItem('saved_login_email');
   }
 
-  auth.signInWithEmailAndPassword(email, pass)
-    .then((userCredential) => {
-      errorMsg.style.display = 'none';
-    })
-    .catch((error) => {
-      errorMsg.innerText = "Usuário ou senha incorretos.";
-      errorMsg.style.display = 'block';
-    });
+  if (isRegisterMode) {
+    const nome = document.getElementById('register-name').value.trim();
+    auth.createUserWithEmailAndPassword(email, pass)
+      .then((userCredential) => {
+        return userCredential.user.updateProfile({ displayName: nome });
+      })
+      .then(() => {
+        errorMsg.style.display = 'none';
+      })
+      .catch((error) => {
+        errorMsg.innerText = "Erro ao cadastrar: " + error.message;
+        errorMsg.style.display = 'block';
+      });
+  } else {
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(() => {
+        errorMsg.style.display = 'none';
+      })
+      .catch((error) => {
+        errorMsg.innerText = "E-mail ou senha incorretos.";
+        errorMsg.style.display = 'block';
+      });
+  }
 }
 
-// Login com a Conta do Google (Popup)
 function loginWithGoogle() {
   auth.signInWithPopup(provider)
     .then((result) => {
@@ -1060,10 +1028,9 @@ function loginWithGoogle() {
     });
 }
 
-// Sistema de Recuperação de Senha por E-mail
 function resetPassword(e) {
   e.preventDefault();
-  const email = prompt("Digite o e-mail cadastrado (weslleymoreiraa2.0@gmail.com) para receber o link de recuperação:");
+  const email = prompt("Digite seu e-mail cadastrado para receber o link de recuperação:");
   if (!email) return;
 
   auth.sendPasswordResetEmail(email)
@@ -1071,24 +1038,22 @@ function resetPassword(e) {
       alert("E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.");
     })
     .catch((error) => {
-      alert("Erro ao enviar e-mail de recuperação: " + error.message);
+      alert("Erro ao enviar e-mail: " + error.message);
     });
 }
 
 function updateAuthUI(user) {
   const accountStatusEl = document.getElementById('account-status');
   accountStatusEl.innerHTML = `
-    <div style="background: var(--green-light); border: 1px solid rgba(16, 185, 129, 0.3); padding: 10px 14px; border-radius: var(--radius-md); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85em;">
-      <span style="color: #047857; font-weight: 600;">✅ Sessão Ativa (${user.email || 'Conectado'})</span>
+    <div style="background: var(--green-light); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: var(--radius-md); margin-bottom: 14px; font-size: 0.8em; color: #047857; font-weight: 600;">
+      ✅ Conectado como: ${user.email}
     </div>
   `;
 }
 
 function logout() {
-  if (confirm("Deseja sair da sessão atual?")) {
-    auth.signOut().then(() => {
-      location.reload();
-    });
+  if (confirm("Deseja sair da sua conta?")) {
+    auth.signOut().then(() => { location.reload(); });
   }
 }
 
@@ -1132,10 +1097,7 @@ function addMonthsToDate(dateString, monthsToAdd) {
   const [year, month, day] = dateString.split('-').map(Number);
   const date = new Date(year, month - 1, day);
   date.setMonth(date.getMonth() + monthsToAdd);
-  
-  if (date.getDate() !== day && monthsToAdd > 0) {
-    date.setDate(0); 
-  }
+  if (date.getDate() !== day && monthsToAdd > 0) { date.setDate(0); }
   return formatDateInput(date);
 }
 
@@ -1145,7 +1107,7 @@ function processAndRefresh() {
 }
 
 // ==========================================
-// EVENTOS E OPERAÇÕES CRUD
+// CRUD DE LANÇAMENTOS
 // ==========================================
 
 form.addEventListener('submit', async (e) => {
@@ -1156,7 +1118,6 @@ form.addEventListener('submit', async (e) => {
   const startDate = document.getElementById('date').value;
   const category = document.getElementById('category').value;
   const type = document.getElementById('type').value;
-  const user = document.getElementById('user').value;
   const isPaidFirst = document.getElementById('is-paid').checked;
   const numInstallments = parseInt(document.getElementById('installments').value, 10) || 1;
 
@@ -1171,7 +1132,6 @@ form.addEventListener('submit', async (e) => {
         date: startDate,
         category: category,
         type: type,
-        user: user,
         status: isPaidFirst ? 'pago' : 'pendente',
         updatedAt: Date.now()
       };
@@ -1188,7 +1148,6 @@ form.addEventListener('submit', async (e) => {
           date: installmentDate,
           category: category,
           type: type,
-          user: user,
           status: status,
           createdAt: Date.now()
         };
@@ -1198,7 +1157,7 @@ form.addEventListener('submit', async (e) => {
     resetForm();
   } catch (error) {
     console.error("Erro ao salvar:", error);
-    alert("Erro ao salvar no Firebase: " + error.message);
+    alert("Erro ao salvar: " + error.message);
   } finally {
     submitBtn.disabled = false;
   }
@@ -1225,7 +1184,6 @@ function editTransaction(id) {
   document.getElementById('date').value = item.date;
   document.getElementById('category').value = item.category || 'Outros';
   document.getElementById('type').value = item.type;
-  document.getElementById('user').value = normalizeUser(item.user);
   document.getElementById('is-paid').checked = (item.status !== 'pendente');
 
   document.getElementById('installments-wrapper').style.display = 'none';
@@ -1245,13 +1203,6 @@ function resetForm() {
   document.getElementById('installments-wrapper').style.display = 'block';
   document.getElementById('date').value = formatDateInput(new Date());
   document.getElementById('is-paid').checked = true;
-  
-  const userInputVal = document.getElementById('login-email').value.trim().toLowerCase();
-  if (userInputVal.includes('andreia')) {
-    document.getElementById('user').value = 'Andreia';
-  } else {
-    document.getElementById('user').value = 'Weslley';
-  }
 }
 
 async function deleteTransaction(id) {
@@ -1269,16 +1220,12 @@ async function deleteTransaction(id) {
 // ==========================================
 
 function getFilteredTransactions() {
-  const filterUser = document.getElementById('filter-user')?.value || 'all';
   return allTransactions.filter(t => {
     const start = filterStart.value || '1900-01-01';
     const end = filterEnd.value || '2099-12-31';
     const inDateRange = t.date >= start && t.date <= end;
     const matchesType = activeTypeFilter === 'all' || t.type === activeTypeFilter;
-    const normUser = normalizeUser(t.user);
-    const matchesUser = filterUser === 'all' || normUser === filterUser;
-    
-    return inDateRange && matchesType && matchesUser;
+    return inDateRange && matchesType;
   });
 }
 
@@ -1350,54 +1297,24 @@ function refreshDataViews() {
 // ==========================================
 
 function renderDashboard() {
-  let weslleyIn = 0, weslleyOut = 0, weslleyPrev = 0;
-  let andreiaIn = 0, andreiaOut = 0, andreiaPrev = 0;
-
+  let totalPrev = 0, totalIn = 0, totalOut = 0;
   const start = filterStart.value || '1900-01-01';
   const end = filterEnd.value || '2099-12-31';
 
   allTransactions.forEach(t => {
     if (t.status !== 'pago') return;
-
-    const userNorm = normalizeUser(t.user);
     const amt = Number(t.amount) || 0;
 
     if (start && t.date < start) {
-      if (t.type === 'income') {
-        if (userNorm === 'Weslley') weslleyPrev += amt;
-        if (userNorm === 'Andreia') andreiaPrev += amt;
-      } else {
-        if (userNorm === 'Weslley') weslleyPrev -= amt;
-        if (userNorm === 'Andreia') andreiaPrev -= amt;
-      }
+      if (t.type === 'income') totalPrev += amt;
+      else totalPrev -= amt;
     } else if (t.date <= end) {
-      if (t.type === 'income') {
-        if (userNorm === 'Weslley') weslleyIn += amt;
-        if (userNorm === 'Andreia') andreiaIn += amt;
-      } else {
-        if (userNorm === 'Weslley') weslleyOut += amt;
-        if (userNorm === 'Andreia') andreiaOut += amt;
-      }
+      if (t.type === 'income') totalIn += amt;
+      else totalOut += amt;
     }
   });
 
-  const selectedUser = document.getElementById('filter-user')?.value || 'all';
-
-  let totalPrev = 0, totalIn = 0, totalOut = 0;
-
-  if (selectedUser === 'Weslley') {
-    totalPrev = weslleyPrev; totalIn = weslleyIn; totalOut = weslleyOut;
-  } else if (selectedUser === 'Andreia') {
-    totalPrev = andreiaPrev; totalIn = andreiaIn; totalOut = andreiaOut;
-  } else {
-    totalPrev = weslleyPrev + andreiaPrev;
-    totalIn = weslleyIn + andreiaIn;
-    totalOut = weslleyOut + andreiaOut;
-  }
-
   const balance = totalPrev + totalIn - totalOut;
-  const weslleyBalance = weslleyPrev + weslleyIn - weslleyOut;
-  const andreiaBalance = andreiaPrev + andreiaIn - andreiaOut;
 
   const prevEl = document.getElementById('dash-prev');
   if (prevEl) {
@@ -1411,30 +1328,6 @@ function renderDashboard() {
   const balanceEl = document.getElementById('dash-balance');
   balanceEl.innerText = formatCurrency(balance);
   balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
-
-  const filterLabel1 = document.getElementById('dash-filter-label');
-  const filterLabel2 = document.getElementById('dash-filter-label-2');
-  const labelText = selectedUser === 'all' ? 'Geral' : selectedUser;
-  if (filterLabel1) filterLabel1.innerText = labelText;
-  if (filterLabel2) filterLabel2.innerText = labelText;
-
-  if (document.getElementById('weslley-in')) {
-    document.getElementById('weslley-prev').innerText = formatCurrency(weslleyPrev);
-    document.getElementById('weslley-in').innerText = formatCurrency(weslleyIn);
-    document.getElementById('weslley-out').innerText = formatCurrency(weslleyOut);
-    const wBalEl = document.getElementById('weslley-balance');
-    wBalEl.innerText = formatCurrency(weslleyBalance);
-    wBalEl.style.color = weslleyBalance >= 0 ? 'var(--green)' : 'var(--red)';
-  }
-
-  if (document.getElementById('andreia-in')) {
-    document.getElementById('andreia-prev').innerText = formatCurrency(andreiaPrev);
-    document.getElementById('andreia-in').innerText = formatCurrency(andreiaIn);
-    document.getElementById('andreia-out').innerText = formatCurrency(andreiaOut);
-    const aBalEl = document.getElementById('andreia-balance');
-    aBalEl.innerText = formatCurrency(andreiaBalance);
-    aBalEl.style.color = andreiaBalance >= 0 ? 'var(--green)' : 'var(--red)';
-  }
 }
 
 function renderList() {
@@ -1453,8 +1346,6 @@ function renderList() {
     const isExpense = item.type === 'expense';
     const valClass = isExpense ? 'val-out' : 'val-in';
     const valSign = isExpense ? '-' : '+';
-    const normUser = normalizeUser(item.user);
-    const badgeUserClass = normUser === 'Weslley' ? 'badge-weslley' : 'badge-andreia';
 
     const dateParts = item.date.split('-');
     const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : item.date;
@@ -1469,10 +1360,9 @@ function renderList() {
         <input type="checkbox" ${isPaid ? 'checked' : ''} onchange="toggleStatus('${item.id}', this.checked)" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
         <div style="flex: 1; cursor: pointer;" onclick="showInstallments('${item.id}')">
           <div style="font-weight: 700; font-size: 0.9em; color: var(--gray-900);">
-            ${item.description} ${!isPaid ? '<span style="color: var(--amber); font-size: 0.75em; font-weight: 600;">(Futuro)</span>' : ''}
+            ${item.description} ${!isPaid ? '<span style="color: var(--amber); font-size: 0.75em; font-weight: 600;">(Pendente)</span>' : ''}
           </div>
           <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-            <span class="badge ${badgeUserClass}">${normUser}</span>
             <span class="badge badge-cat">${item.category || 'Outros'}</span>
             <span class="item-date">${formattedDate}</span>
           </div>
@@ -1480,7 +1370,7 @@ function renderList() {
         <div style="text-align: right;">
           <div class="${valClass}" style="font-weight: 800; font-size: 0.9em;">${valSign} ${formatCurrency(item.amount)}</div>
           <div style="margin-top: 4px;">
-            <button class="btn-icon" onclick="showInstallments('${item.id}')" title="Ver Parcelas">🗓️</button>
+            <button class="btn-icon" onclick="showInstallments('${item.id}')" title="Parcelas">🗓️</button>
             <button class="btn-icon" onclick="editTransaction('${item.id}')" title="Editar">✏️</button>
             <button class="btn-icon" onclick="deleteTransaction('${item.id}')" title="Excluir">🗑️</button>
           </div>
@@ -1535,15 +1425,12 @@ function renderReports() {
   const filtered = getFilteredTransactions();
   const expenses = filtered.filter(t => t.type === 'expense');
   const categories = {};
-  const userTotals = { Weslley: 0, Andreia: 0 };
   let totalExpense = 0;
 
   expenses.forEach(t => {
     const cat = t.category || 'Outros';
     const val = Number(t.amount);
     categories[cat] = (categories[cat] || 0) + val;
-    const normUser = normalizeUser(t.user);
-    if (userTotals[normUser] !== undefined) userTotals[normUser] += val;
     totalExpense += val;
   });
 
@@ -1580,18 +1467,6 @@ function renderReports() {
     tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
     tableBody.appendChild(tr);
   });
-
-  const userCtx = document.getElementById('userChart').getContext('2d');
-  if (userChartInstance) userChartInstance.destroy();
-
-  userChartInstance = new Chart(userCtx, {
-    type: 'bar',
-    data: {
-      labels: ['Weslley', 'Andreia'],
-      datasets: [{ label: 'Gastos R$', data: [userTotals.Weslley, userTotals.Andreia], backgroundColor: ['#3B82F6', '#EC4899'] }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
 }
 
 // ==========================================
@@ -1600,7 +1475,7 @@ function renderReports() {
 
 function renderPiggies() {
   ['ferias', 'emergencia'].forEach(key => {
-    const labelText = key === 'ferias' ? 'Cofrinho: Férias' : 'Cofrinho: Emergência';
+    const labelText = key === 'ferias' ? 'Cofrinho: Viagem / Férias' : 'Cofrinho: Reserva de Emergência';
     let totalPiggy = 0;
     allTransactions.forEach(t => {
       if (t.description === labelText) {
@@ -1621,15 +1496,12 @@ function renderPiggies() {
 }
 
 async function updatePiggyAmount(key, action) {
-  const label = key === 'ferias' ? 'Férias' : 'Emergência';
+  const label = key === 'ferias' ? 'Viagem / Férias' : 'Reserva de Emergência';
   const valStr = prompt(`Informe o valor que deseja ${action === 'add' ? 'guardar' : 'retirar'}:`);
   if (!valStr) return;
 
   const val = parseFloat(valStr.replace('.', '').replace(',', '.'));
   if (isNaN(val) || val <= 0) return alert("Valor inválido.");
-
-  const userInputVal = document.getElementById('login-email').value.trim().toLowerCase();
-  const activeUser = userInputVal.includes('andreia') ? 'Andreia' : 'Weslley';
 
   const payload = {
     description: `Cofrinho: ${label}`,
@@ -1637,7 +1509,6 @@ async function updatePiggyAmount(key, action) {
     date: formatDateInput(new Date()),
     category: 'Cofrinho',
     type: action === 'add' ? 'expense' : 'income',
-    user: activeUser,
     status: 'pago',
     createdAt: Date.now()
   };
@@ -1671,7 +1542,7 @@ function abrirModalDetalhes(tipoDesejado) {
   const filtrados = getFilteredTransactions().filter(item => item.type === (isIncome ? 'income' : 'expense'));
 
   if (filtrados.length === 0) {
-    tabelaCorpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--gray-400);">Nenhum registro.</td></tr>`;
+    tabelaCorpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--gray-400);">Nenhum registro.</td></tr>`;
   } else {
     filtrados.forEach(item => {
       const isPaid = item.status === 'pago';
@@ -1680,7 +1551,6 @@ function abrirModalDetalhes(tipoDesejado) {
           <td>${item.date.split('-').reverse().join('/')}</td>
           <td>${item.description}</td>
           <td>${item.category || '-'}</td>
-          <td>${normalizeUser(item.user)}</td>
           <td style="font-weight: bold; color: ${isIncome ? 'var(--green)' : 'var(--red)'};">${formatCurrency(item.amount)}</td>
           <td style="color: ${isPaid ? 'var(--green)' : 'var(--amber)'};">${isPaid ? '✓ Pago' : '⏳ Pendente'}</td>
         </tr>`;
@@ -1702,7 +1572,6 @@ function abrirModalCategoria(categoria) {
         <td>${item.date.split('-').reverse().join('/')}</td>
         <td>${item.description}</td>
         <td>${item.category}</td>
-        <td>${normalizeUser(item.user)}</td>
         <td style="font-weight: bold; color: var(--red);">${formatCurrency(item.amount)}</td>
         <td>${item.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}</td>
       </tr>`;
