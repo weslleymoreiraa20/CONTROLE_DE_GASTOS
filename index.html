@@ -991,8 +991,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 auth.onAuthStateChanged((user) => {
   if (user) {
-    db = firebase.database().ref('financeiro_casal/transacoes');
-    dbCofrinhos = firebase.database().ref('financeiro_casal/cofrinhos');
+    // Isola os dados utilizando o UID exclusivo do usuário autenticado
+    db = firebase.database().ref(`usuarios/${user.uid}/transacoes`);
+    dbCofrinhos = firebase.database().ref(`usuarios/${user.uid}/cofrinhos`);
 
     initDatabaseListeners();
     updateAuthUI(user);
