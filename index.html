@@ -300,6 +300,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      margin-bottom: 12px;
     }
     .quick-btns {
       display: flex;
@@ -625,27 +626,6 @@
 
   <div id="account-status"></div>
 
-  <!-- FILTRO DE PERÍODO GLOBAL (AGORA VISÍVEL EM TODAS AS ABAS) -->
-  <div class="card" style="margin-bottom: 16px;">
-    <div class="period-selector">
-      <div class="quick-btns">
-        <button class="btn-quick active" onclick="setPreset('this-month', this)">Este Mês</button>
-        <button class="btn-quick" onclick="setPreset('last-month', this)">Mês Passado</button>
-        <button class="btn-quick" onclick="setPreset('all', this)">Tudo</button>
-      </div>
-      <div class="date-range-inputs">
-        <div>
-          <label>De:</label>
-          <input type="date" id="filter-start" onchange="customDateChanged()">
-        </div>
-        <div>
-          <label>Até:</label>
-          <input type="date" id="filter-end" onchange="customDateChanged()">
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- NAVEGAÇÃO DE ABAS -->
   <nav class="main-nav">
     <button class="nav-tab active" onclick="switchView('carteira')">💳 Carteira</button>
@@ -665,19 +645,19 @@
     <div class="card">
       <!-- GRID RESUMO FINANCEIRO -->
       <div class="dash-grid" style="grid-template-columns: repeat(2, 1fr);">
-        <div class="dash-item" title="Saldo anterior trazido de períodos passados">
-          <span>Saldo Anterior</span>
+        <div class="dash-item" title="Saldo total acumulado no histórico">
+          <span>Saldo Total</span>
           <strong id="dash-prev" style="color: var(--gray-700);">R$ 0,00</strong>
         </div>
         <div class="dash-item" onclick="abrirModalDetalhes('entrada')" style="cursor: pointer;" title="Clique para ver entradas">
-          <span>Entradas</span>
+          <span>Entradas Totais</span>
           <strong id="dash-in" class="val-in">R$ 0,00</strong>
         </div>
         <div class="dash-item" onclick="abrirModalDetalhes('saida')" style="cursor: pointer;" title="Clique para ver saídas">
-          <span>Saídas</span>
+          <span>Saídas Totais</span>
           <strong id="dash-out" class="val-out">R$ 0,00</strong>
         </div>
-        <div class="dash-item" onclick="switchView('lancamentos')" style="cursor: pointer;" title="Saldo total atual disponível">
+        <div class="dash-item" onclick="switchView('lancamentos')" style="cursor: pointer;" title="Saldo atual disponível">
           <span>Saldo Atual</span>
           <strong id="dash-balance">R$ 0,00</strong>
         </div>
@@ -693,7 +673,25 @@
   <!-- ABA LANÇAMENTOS -->
   <div id="view-lancamentos" class="view-content">
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div class="period-selector">
+        <div class="quick-btns">
+          <button class="btn-quick active" onclick="setPreset('this-month', this)">Este Mês</button>
+          <button class="btn-quick" onclick="setPreset('last-month', this)">Mês Passado</button>
+          <button class="btn-quick" onclick="setPreset('all', this)">Tudo</button>
+        </div>
+        <div class="date-range-inputs">
+          <div>
+            <label>De:</label>
+            <input type="date" id="filter-start" onchange="customDateChanged()">
+          </div>
+          <div>
+            <label>Até:</label>
+            <input type="date" id="filter-end" onchange="customDateChanged()">
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 16px; border-top: 1px solid var(--gray-100); padding-top: 12px;">
         <h3 style="margin:0; font-size: 1.15em; color: var(--gray-900);">Histórico do Período</h3>
         <button class="btn-primary" onclick="abrirModalTransacao()" style="margin:0; padding: 8px 12px; font-size: 0.8em; width: auto;">+ Novo Lançamento</button>
       </div>
@@ -1300,30 +1298,19 @@ function refreshDataViews() {
 // ==========================================
 
 function renderDashboard() {
-  let totalPrev = 0, totalIn = 0, totalOut = 0;
-  const start = filterStart.value || '1900-01-01';
-  const end = filterEnd.value || '2099-12-31';
+  let totalIn = 0, totalOut = 0;
 
   allTransactions.forEach(t => {
     if (t.status !== 'pago') return;
     const amt = Number(t.amount) || 0;
-
-    if (start && t.date < start) {
-      if (t.type === 'income') totalPrev += amt;
-      else totalPrev -= amt;
-    } else if (t.date <= end) {
-      if (t.type === 'income') totalIn += amt;
-      else totalOut += amt;
-    }
+    if (t.type === 'income') totalIn += amt;
+    else totalOut += amt;
   });
 
-  const balance = totalPrev + totalIn - totalOut;
+  const balance = totalIn - totalOut;
 
-  const prevEl = document.getElementById('dash-prev');
-  if (prevEl) {
-    prevEl.innerText = formatCurrency(totalPrev);
-    prevEl.style.color = totalPrev >= 0 ? 'var(--green)' : 'var(--red)';
-  }
+  document.getElementById('dash-prev').innerText = formatCurrency(balance);
+  document.getElementById('dash-prev').style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
 
   document.getElementById('dash-in').innerText = formatCurrency(totalIn);
   document.getElementById('dash-out').innerText = formatCurrency(totalOut);
@@ -1425,6 +1412,7 @@ function checkReminders() {
 }
 
 function renderReports() {
+  // Relatórios continuam usando o filtro da aba de lançamentos para manter consistência
   const filtered = getFilteredTransactions();
   const expenses = filtered.filter(t => t.type === 'expense');
   const categories = {};
@@ -1640,7 +1628,7 @@ function abrirModalDetalhes(tipoDesejado) {
   titulo.innerText = isIncome ? 'Detalhes de Entradas' : 'Detalhes de Saídas';
   tabelaCorpo.innerHTML = '';
 
-  const filtrados = getFilteredTransactions().filter(item => item.type === (isIncome ? 'income' : 'expense'));
+  const filtrados = allTransactions.filter(item => item.status === 'pago' && item.type === (isIncome ? 'income' : 'expense'));
 
   if (filtrados.length === 0) {
     tabelaCorpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--gray-400);">Nenhum registro.</td></tr>`;
