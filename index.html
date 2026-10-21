@@ -300,7 +300,6 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 16px;
     }
     .quick-btns {
       display: flex;
@@ -626,6 +625,27 @@
 
   <div id="account-status"></div>
 
+  <!-- FILTRO DE PERÍODO GLOBAL (AGORA VISÍVEL EM TODAS AS ABAS) -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div class="period-selector">
+      <div class="quick-btns">
+        <button class="btn-quick active" onclick="setPreset('this-month', this)">Este Mês</button>
+        <button class="btn-quick" onclick="setPreset('last-month', this)">Mês Passado</button>
+        <button class="btn-quick" onclick="setPreset('all', this)">Tudo</button>
+      </div>
+      <div class="date-range-inputs">
+        <div>
+          <label>De:</label>
+          <input type="date" id="filter-start" onchange="customDateChanged()">
+        </div>
+        <div>
+          <label>Até:</label>
+          <input type="date" id="filter-end" onchange="customDateChanged()">
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- NAVEGAÇÃO DE ABAS -->
   <nav class="main-nav">
     <button class="nav-tab active" onclick="switchView('carteira')">💳 Carteira</button>
@@ -643,25 +663,7 @@
     </div>
 
     <div class="card">
-      <div class="period-selector">
-        <div class="quick-btns">
-          <button class="btn-quick active" onclick="setPreset('this-month', this)">Este Mês</button>
-          <button class="btn-quick" onclick="setPreset('last-month', this)">Mês Passado</button>
-          <button class="btn-quick" onclick="setPreset('all', this)">Tudo</button>
-        </div>
-        <div class="date-range-inputs">
-          <div>
-            <label>De:</label>
-            <input type="date" id="filter-start" onchange="customDateChanged()">
-          </div>
-          <div>
-            <label>Até:</label>
-            <input type="date" id="filter-end" onchange="customDateChanged()">
-          </div>
-        </div>
-      </div>
-
-      <!-- GRID RESUMO FINANCEIRO (COM NOMENCLATURA PROFISSIONAL) -->
+      <!-- GRID RESUMO FINANCEIRO -->
       <div class="dash-grid" style="grid-template-columns: repeat(2, 1fr);">
         <div class="dash-item" title="Saldo anterior trazido de períodos passados">
           <span>Saldo Anterior</span>
