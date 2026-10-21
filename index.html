@@ -534,10 +534,11 @@
       display: flex;
       gap: 8px;
       margin-top: 12px;
+      flex-wrap: wrap;
     }
     .btn-piggy {
-      padding: 8px 12px;
-      font-size: 0.8em;
+      padding: 6px 10px;
+      font-size: 0.75em;
       border-radius: var(--radius-sm);
       border: none;
       cursor: pointer;
@@ -547,6 +548,7 @@
     .btn-piggy-add { background: var(--green); color: white; }
     .btn-piggy-sub { background: var(--amber); color: white; }
     .btn-piggy-edit { background: var(--gray-200); color: var(--gray-700); }
+    .btn-piggy-del { background: var(--red-light); color: var(--red); }
     .btn-piggy:hover { opacity: 0.9; transform: translateY(-1px); }
 
     @media (max-width: 420px) {
@@ -565,13 +567,11 @@
     <h2>💰 Meu Controle</h2>
     <p id="login-subtitle" style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 14px 0;">Acesse sua carteira pessoal</p>
     
-    <!-- Abas Entrar / Criar Conta -->
     <div style="display: flex; background: var(--gray-100); padding: 4px; border-radius: var(--radius-sm); margin-bottom: 14px;">
       <button type="button" id="tab-login" onclick="switchAuthMode('login')" style="flex: 1; padding: 6px; border: none; background: var(--surface); font-weight: 700; font-size: 0.85em; border-radius: 6px; cursor: pointer; color: var(--primary);">Entrar</button>
       <button type="button" id="tab-register" onclick="switchAuthMode('register')" style="flex: 1; padding: 6px; border: none; background: transparent; font-weight: 700; font-size: 0.85em; border-radius: 6px; cursor: pointer; color: var(--gray-500);">Criar Conta</button>
     </div>
 
-    <!-- Botão Google -->
     <button type="button" onclick="loginWithGoogle()" style="background: #ffffff; color: #374151; border: 1px solid var(--gray-200); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%; padding: 10px; border-radius: var(--radius-md); cursor: pointer;">
       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.21 21.34 7.32 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 11.7s.43 3.57 1.19 5.1l4.08-2.56z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.32 0 3.21 2.66 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
       Continuar com o Google
@@ -584,7 +584,6 @@
     </div>
 
     <form id="auth-form" onsubmit="handleAuthSubmit(event)">
-      <!-- Campo Nome da Carteira (Aparece apenas no Cadastro) -->
       <div id="name-field-container" style="text-align: left; display: none; margin-bottom: 10px;">
         <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Nome da Carteira / Usuário</label>
         <input type="text" id="register-name" placeholder="Ex: Maria Silva" style="margin-top: 4px;">
@@ -755,49 +754,15 @@
     </div>
   </div>
 
-  <!-- VISÃO DE COFRINHOS -->
+  <!-- VISÃO DE COFRINHOS DINÂMICA -->
   <div id="view-cofrinhos" class="view-content">
     <div class="card">
-      <h3 style="margin-top:0; font-size: 1.15em; color: var(--gray-900);">Meus Cofrinhos 🎯</h3>
-
-      <div class="piggy-card">
-        <div class="piggy-header">
-          <span class="piggy-title">✈️ Viagem / Férias</span>
-          <strong id="ferias-percent" style="color: var(--primary);">0%</strong>
-        </div>
-        <div class="progress-bar-bg">
-          <div id="ferias-progress" class="progress-bar-fill"></div>
-        </div>
-        <div class="piggy-values">
-          <span>Guardado: <strong id="ferias-current" style="color: var(--green);">R$ 0,00</strong></span>
-          <span>Meta: <strong id="ferias-target">R$ 5.000,00</strong></span>
-        </div>
-        <div class="piggy-actions">
-          <button class="btn-piggy btn-piggy-add" onclick="updatePiggyAmount('ferias', 'add')">+ Guardar</button>
-          <button class="btn-piggy btn-piggy-sub" onclick="updatePiggyAmount('ferias', 'sub')">- Retirar</button>
-          <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('ferias')">⚙ Meta</button>
-        </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin:0; font-size: 1.15em; color: var(--gray-900);">Meus Cofrinhos 🎯</h3>
+        <button class="btn-primary" onclick="createNewPiggy()" style="margin:0; padding: 8px 12px; font-size: 0.8em; width: auto;">+ Novo Cofrinho</button>
       </div>
 
-      <div class="piggy-card">
-        <div class="piggy-header">
-          <span class="piggy-title">🛡️ Reserva de Emergência</span>
-          <strong id="emergencia-percent" style="color: var(--primary);">0%</strong>
-        </div>
-        <div class="progress-bar-bg">
-          <div id="emergencia-progress" class="progress-bar-fill"></div>
-        </div>
-        <div class="piggy-values">
-          <span>Guardado: <strong id="emergencia-current" style="color: var(--green);">R$ 0,00</strong></span>
-          <span>Meta: <strong id="emergencia-target">R$ 10.000,00</strong></span>
-        </div>
-        <div class="piggy-actions">
-          <button class="btn-piggy btn-piggy-add" onclick="updatePiggyAmount('emergencia', 'add')">+ Guardar</button>
-          <button class="btn-piggy btn-piggy-sub" onclick="updatePiggyAmount('emergencia', 'sub')">- Retirar</button>
-          <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('emergencia')">⚙️ Meta</button>
-        </div>
-      </div>
-
+      <div id="piggy-list-container"></div>
     </div>
   </div>
 
@@ -891,10 +856,7 @@ let db = null;
 let dbCofrinhos = null;
 
 let allTransactions = [];
-let piggyData = {
-  ferias: { target: 5000 },
-  emergencia: { target: 10000 }
-};
+let piggyData = {};
 
 let activeView = 'lancamentos';
 let categoryChartInstance = null;
@@ -955,14 +917,12 @@ function switchAuthMode(mode) {
 
 auth.onAuthStateChanged((user) => {
   if (user) {
-    // Banco de dados isolado por UID do usuário
     db = firebase.database().ref(`usuarios/${user.uid}/transacoes`);
     dbCofrinhos = firebase.database().ref(`usuarios/${user.uid}/cofrinhos`);
 
     initDatabaseListeners();
     updateAuthUI(user);
 
-    // Define nome da carteira (displayName ou parte do e-mail)
     let walletName = user.displayName;
     if (!walletName && user.email) {
       walletName = user.email.split('@')[0];
@@ -1020,9 +980,7 @@ function handleAuthSubmit(e) {
 
 function loginWithGoogle() {
   auth.signInWithPopup(provider)
-    .then((result) => {
-      // Sucesso no login com Google
-    })
+    .then((result) => {})
     .catch((error) => {
       alert("Erro ao entrar com o Google: " + error.message);
     });
@@ -1070,11 +1028,24 @@ function initDatabaseListeners() {
     processAndRefresh();
   });
 
-  dbCofrinhos.on('value', (snapshot) => {
+  dbCofrinhos.on('value', async (snapshot) => {
+    piggyData = {};
     const data = snapshot.val();
     if (data) {
-      if (data.ferias) piggyData.ferias.target = data.ferias.target || 5000;
-      if (data.emergencia) piggyData.emergencia.target = data.emergencia.target || 10000;
+      Object.keys(data).forEach(key => {
+        piggyData[key] = {
+          name: data[key].name || key,
+          target: Number(data[key].target) || 0
+        };
+      });
+    } else {
+      // Se não houver cofrinhos, cria os padrões iniciais
+      const defaults = {
+        'ferias': { name: 'Viagem / Férias', target: 5000 },
+        'emergencia': { name: 'Reserva de Emergência', target: 10000 }
+      };
+      await dbCofrinhos.set(defaults);
+      return;
     }
     renderPiggies();
   });
@@ -1470,34 +1441,88 @@ function renderReports() {
 }
 
 // ==========================================
-// COFRINHOS
+// COFRINHOS DINÂMICOS
 // ==========================================
 
 function renderPiggies() {
-  ['ferias', 'emergencia'].forEach(key => {
-    const labelText = key === 'ferias' ? 'Cofrinho: Viagem / Férias' : 'Cofrinho: Reserva de Emergência';
+  const container = document.getElementById('piggy-list-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const keys = Object.keys(piggyData);
+  if (keys.length === 0) {
+    container.innerHTML = '<p style="text-align:center; color: var(--gray-400); font-size: 0.9em; padding: 12px 0;">Nenhum cofrinho cadastrado.</p>';
+    return;
+  }
+
+  keys.forEach(key => {
+    const piggy = piggyData[key];
+    const labelText = piggy.name;
     let totalPiggy = 0;
+
     allTransactions.forEach(t => {
-      if (t.description === labelText) {
+      if (t.description === `Cofrinho: ${labelText}`) {
         if (t.type === 'expense') totalPiggy += Number(t.amount);
         else if (t.type === 'income') totalPiggy -= Number(t.amount);
       }
     });
 
     totalPiggy = Math.max(0, totalPiggy);
-    const targetVal = piggyData[key].target || (key === 'ferias' ? 5000 : 10000);
-    
-    document.getElementById(`${key}-current`).innerText = formatCurrency(totalPiggy);
-    document.getElementById(`${key}-target`).innerText = formatCurrency(targetVal);
-    const pct = Math.min(100, Math.max(0, ((totalPiggy / targetVal) * 100))).toFixed(1);
-    document.getElementById(`${key}-progress`).style.width = `${pct}%`;
-    document.getElementById(`${key}-percent`).innerText = `${pct}%`;
+    const targetVal = piggy.target || 0;
+    const pct = targetVal > 0 ? Math.min(100, Math.max(0, ((totalPiggy / targetVal) * 100))).toFixed(1) : '0.0';
+
+    const card = document.createElement('div');
+    card.className = 'piggy-card';
+    card.innerHTML = `
+      <div class="piggy-header">
+        <span class="piggy-title">🎯 ${labelText}</span>
+        <strong style="color: var(--primary);">${pct}%</strong>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+      </div>
+      <div class="piggy-values">
+        <span>Guardado: <strong style="color: var(--green);">${formatCurrency(totalPiggy)}</strong></span>
+        <span>Meta: <strong style="color: var(--gray-700);">${formatCurrency(targetVal)}</strong></span>
+      </div>
+      <div class="piggy-actions">
+        <button class="btn-piggy btn-piggy-add" onclick="updatePiggyAmount('${key}', 'add')">+ Guardar</button>
+        <button class="btn-piggy btn-piggy-sub" onclick="updatePiggyAmount('${key}', 'sub')">- Retirar</button>
+        <button class="btn-piggy btn-piggy-edit" onclick="editPiggyName('${key}')">✏️ Nome</button>
+        <button class="btn-piggy btn-piggy-edit" onclick="editPiggyTarget('${key}')">⚙️ Meta</button>
+        <button class="btn-piggy btn-piggy-del" onclick="deletePiggy('${key}')">🗑️ Excluir</button>
+      </div>
+    `;
+    container.appendChild(card);
   });
 }
 
+async function createNewPiggy() {
+  const name = prompt("Digite o nome do novo cofrinho (ex: Viagem, Carro Novo):");
+  if (!name || !name.trim()) return;
+  const targetStr = prompt("Digite o valor da meta para este cofrinho (R$):", "1000");
+  if (!targetStr) return;
+  const target = parseFloat(targetStr.replace('.', '').replace(',', '.'));
+  if (isNaN(target) || target <= 0) {
+    alert("Valor da meta inválido.");
+    return;
+  }
+
+  try {
+    await dbCofrinhos.push({
+      name: name.trim(),
+      target: target
+    });
+  } catch (error) {
+    alert("Erro ao criar cofrinho: " + error.message);
+  }
+}
+
 async function updatePiggyAmount(key, action) {
-  const label = key === 'ferias' ? 'Viagem / Férias' : 'Reserva de Emergência';
-  const valStr = prompt(`Informe o valor que deseja ${action === 'add' ? 'guardar' : 'retirar'}:`);
+  const piggy = piggyData[key];
+  if (!piggy) return;
+  const label = piggy.name;
+  const valStr = prompt(`Informe o valor que deseja ${action === 'add' ? 'guardar' : 'retirar'} em "${label}":`);
   if (!valStr) return;
 
   const val = parseFloat(valStr.replace('.', '').replace(',', '.'));
@@ -1516,13 +1541,43 @@ async function updatePiggyAmount(key, action) {
   await db.push(payload);
 }
 
+async function editPiggyName(key) {
+  const piggy = piggyData[key];
+  if (!piggy) return;
+  const newName = prompt("Digite o novo nome para o cofrinho:", piggy.name);
+  if (!newName || !newName.trim()) return;
+  
+  try {
+    await dbCofrinhos.child(key).update({ name: newName.trim() });
+  } catch (error) {
+    alert("Erro ao atualizar nome: " + error.message);
+  }
+}
+
 async function editPiggyTarget(key) {
-  const currentTarget = piggyData[key].target;
-  const valStr = prompt("Defina a nova META:", currentTarget);
+  const piggy = piggyData[key];
+  if (!piggy) return;
+  const valStr = prompt(`Defina a nova META para "${piggy.name}":`, piggy.target);
   if (!valStr) return;
   const val = parseFloat(valStr.replace('.', '').replace(',', '.'));
   if (!isNaN(val) && val > 0) {
-    await dbCofrinhos.child(key).update({ target: val });
+    try {
+      await dbCofrinhos.child(key).update({ target: val });
+    } catch (error) {
+      alert("Erro ao atualizar meta: " + error.message);
+    }
+  }
+}
+
+async function deletePiggy(key) {
+  const piggy = piggyData[key];
+  if (!piggy) return;
+  if (confirm(`Deseja realmente excluir o cofrinho "${piggy.name}"?`)) {
+    try {
+      await dbCofrinhos.child(key).remove();
+    } catch (error) {
+      alert("Erro ao excluir cofrinho: " + error.message);
+    }
   }
 }
 
