@@ -645,9 +645,13 @@
     <div class="card">
       <!-- GRID RESUMO FINANCEIRO -->
       <div class="dash-grid" style="grid-template-columns: repeat(2, 1fr);">
-        <div class="dash-item" title="Saldo total acumulado no histórico">
-          <span>Saldo Total</span>
-          <strong id="dash-prev" style="color: var(--gray-700);">R$ 0,00</strong>
+        <div class="dash-item" title="Saldo total acumulado na carteira comum">
+          <span>Saldo Geral</span>
+          <strong id="dash-balance">R$ 0,00</strong>
+        </div>
+        <div class="dash-item" style="background-color: var(--primary-light); border-color: rgba(79, 70, 229, 0.2);" title="Saldo exclusivo do Auxílio de Custo">
+          <span style="color: var(--primary);">Saldo Auxílio</span>
+          <strong id="dash-aux-balance" style="color: var(--primary);">R$ 0,00</strong>
         </div>
         <div class="dash-item" onclick="abrirModalDetalhes('entrada')" style="cursor: pointer;" title="Clique para ver entradas">
           <span>Entradas Totais</span>
@@ -656,10 +660,6 @@
         <div class="dash-item" onclick="abrirModalDetalhes('saida')" style="cursor: pointer;" title="Clique para ver saídas">
           <span>Saídas Totais</span>
           <strong id="dash-out" class="val-out">R$ 0,00</strong>
-        </div>
-        <div class="dash-item" onclick="switchView('lancamentos')" style="cursor: pointer;" title="Saldo atual disponível">
-          <span>Saldo Atual</span>
-          <strong id="dash-balance">R$ 0,00</strong>
         </div>
       </div>
     </div>
@@ -713,6 +713,24 @@
   <!-- ABA RELATÓRIOS -->
   <div id="view-relatorios" class="view-content">
     <div class="card">
+      <div class="period-selector" style="margin-bottom: 16px;">
+        <div class="quick-btns">
+          <button class="btn-quick report-quick active" onclick="setReportPreset('this-month', this)">Este Mês</button>
+          <button class="btn-quick report-quick" onclick="setReportPreset('last-month', this)">Mês Passado</button>
+          <button class="btn-quick report-quick" onclick="setReportPreset('all', this)">Tudo</button>
+        </div>
+        <div class="date-range-inputs">
+          <div>
+            <label>De:</label>
+            <input type="date" id="report-filter-start" onchange="customReportDateChanged()">
+          </div>
+          <div>
+            <label>Até:</label>
+            <input type="date" id="report-filter-end" onchange="customReportDateChanged()">
+          </div>
+        </div>
+      </div>
+
       <h3 style="margin-top:0; font-size: 1.15em; color: var(--gray-900);">Gastos por Categoria</h3>
       <div class="chart-container">
         <canvas id="categoryChart"></canvas>
@@ -775,6 +793,7 @@
 
         <select id="category" required style="margin-top: 10px;">
           <option value="" disabled selected>Selecione uma Categoria</option>
+          <option value="Auxílio de Custo">💳 Auxílio de Custo</option>
           <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
           <option value="Alimentação">🛒 Alimentação / Mercado</option>
           <option value="Moradia">🏠 Moradia / Contas</option>
@@ -892,6 +911,9 @@ const cancelBtn = document.getElementById('cancel-btn');
 const editIdInput = document.getElementById('edit-id');
 const filterStart = document.getElementById('filter-start');
 const filterEnd = document.getElementById('filter-end');
+
+const reportFilterStart = document.getElementById('report-filter-start');
+const reportFilterEnd = document.getElementById('report-filter-end');
 
 // ==========================================
 // AUTENTICAÇÃO E MODOS (ENTRAR / CADASTRAR)
@@ -1112,6 +1134,29 @@ form.addEventListener('submit', async (e) => {
   const isPaidFirst = document.getElementById('is-paid').checked;
   const numInstallments = parseInt(document.getElementById('installments').value, 10) || 1;
 
+  // ---> VALIDAÇÃO DE SALDO DO AUXÍLIO DE CUSTO <---
+  if (category === 'Auxílio de Custo' && type === 'expense' && !id) {
+    let auxTotalIn = 0;
+    let auxTotalOut = 0;
+
+    allTransactions.forEach(t => {
+      if (t.category === 'Auxílio de Custo') {
+        const amt = Number(t.amount) || 0;
+        if (t.type === 'income') auxTotalIn += amt;
+        if (t.type === 'expense') auxTotalOut += amt;
+      }
+    });
+
+    const auxBalance = auxTotalIn - auxTotalOut;
+    const totalGastoNovo = amount * numInstallments;
+
+    if (totalGastoNovo > auxBalance) {
+      alert(`⚠️ Saldo insuficiente no Auxílio de Custo!\n\nSaldo disponível atual: ${formatCurrency(auxBalance)}\nValor tentado: ${formatCurrency(totalGastoNovo)}`);
+      return; // Interrompe o salvamento
+    }
+  }
+  // ------------------------------------------------
+
   submitBtn.disabled = true;
   submitBtn.innerText = "Salvando...";
 
@@ -1231,8 +1276,16 @@ function getFilteredTransactions() {
   });
 }
 
+function getReportFilteredTransactions() {
+  return allTransactions.filter(t => {
+    const start = reportFilterStart.value || '1900-01-01';
+    const end = reportFilterEnd.value || '2099-12-31';
+    return t.date >= start && t.date <= end;
+  });
+}
+
 function setPreset(preset, elementBtn) {
-  document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-quick:not(.report-quick)').forEach(b => b.classList.remove('active'));
   if (elementBtn) elementBtn.classList.add('active');
 
   const now = new Date();
@@ -1249,9 +1302,32 @@ function setPreset(preset, elementBtn) {
   refreshDataViews();
 }
 
+function setReportPreset(preset, elementBtn) {
+  document.querySelectorAll('.report-quick').forEach(b => b.classList.remove('active'));
+  if (elementBtn) elementBtn.classList.add('active');
+
+  const now = new Date();
+  if (preset === 'this-month') {
+    reportFilterStart.value = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
+    reportFilterEnd.value = formatDateInput(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+  } else if (preset === 'last-month') {
+    reportFilterStart.value = formatDateInput(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+    reportFilterEnd.value = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 0));
+  } else if (preset === 'all') {
+    reportFilterStart.value = '';
+    reportFilterEnd.value = '';
+  }
+  renderReports();
+}
+
 function customDateChanged() {
-  document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-quick:not(.report-quick)').forEach(b => b.classList.remove('active'));
   refreshDataViews();
+}
+
+function customReportDateChanged() {
+  document.querySelectorAll('.report-quick').forEach(b => b.classList.remove('active'));
+  renderReports();
 }
 
 function switchView(viewName) {
@@ -1299,25 +1375,38 @@ function refreshDataViews() {
 
 function renderDashboard() {
   let totalIn = 0, totalOut = 0;
+  let auxTotalIn = 0, auxTotalOut = 0;
 
   allTransactions.forEach(t => {
     if (t.status !== 'pago') return;
     const amt = Number(t.amount) || 0;
-    if (t.type === 'income') totalIn += amt;
-    else totalOut += amt;
+
+    // Separações por Categoria
+    if (t.category === 'Auxílio de Custo') {
+      if (t.type === 'income') auxTotalIn += amt;
+      else auxTotalOut += amt;
+    } else {
+      if (t.type === 'income') totalIn += amt;
+      else totalOut += amt;
+    }
   });
 
   const balance = totalIn - totalOut;
+  const auxBalance = auxTotalIn - auxTotalOut;
 
-  document.getElementById('dash-prev').innerText = formatCurrency(balance);
-  document.getElementById('dash-prev').style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
-
+  // Atualiza os elementos visuais na tela
   document.getElementById('dash-in').innerText = formatCurrency(totalIn);
   document.getElementById('dash-out').innerText = formatCurrency(totalOut);
 
   const balanceEl = document.getElementById('dash-balance');
   balanceEl.innerText = formatCurrency(balance);
   balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const auxBalanceEl = document.getElementById('dash-aux-balance');
+  if (auxBalanceEl) {
+    auxBalanceEl.innerText = formatCurrency(auxBalance);
+    auxBalanceEl.style.color = auxBalance >= 0 ? 'var(--primary)' : 'var(--red)';
+  }
 }
 
 function renderList() {
@@ -1412,8 +1501,7 @@ function checkReminders() {
 }
 
 function renderReports() {
-  // Relatórios continuam usando o filtro da aba de lançamentos para manter consistência
-  const filtered = getFilteredTransactions();
+  const filtered = getReportFilteredTransactions();
   const expenses = filtered.filter(t => t.type === 'expense');
   const categories = {};
   let totalExpense = 0;
@@ -1442,7 +1530,7 @@ function renderReports() {
       maintainAspectRatio: false,
       onClick: (event, elements) => {
         if (elements && elements.length > 0) {
-          abrirModalCategoria(categoryChartInstance.data.labels[elements[0].index]);
+          abrirModalCategoriaReport(categoryChartInstance.data.labels[elements[0].index]);
         }
       }
     }
@@ -1454,7 +1542,7 @@ function renderReports() {
     const val = categories[cat];
     const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : '0.0';
     const tr = document.createElement('tr');
-    tr.onclick = () => abrirModalCategoria(cat);
+    tr.onclick = () => abrirModalCategoriaReport(cat);
     tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
     tableBody.appendChild(tr);
   });
@@ -1648,13 +1736,13 @@ function abrirModalDetalhes(tipoDesejado) {
   modal.classList.remove('hidden');
 }
 
-function abrirModalCategoria(categoria) {
+function abrirModalCategoriaReport(categoria) {
   const modal = document.getElementById('modal-detalhes');
   document.getElementById('modal-titulo').innerText = `Categoria: ${categoria}`;
   const tabelaCorpo = document.getElementById('modal-tabela-corpo');
   tabelaCorpo.innerHTML = '';
 
-  const filtrados = getFilteredTransactions().filter(item => item.type === 'expense' && (item.category || 'Outros') === categoria);
+  const filtrados = getReportFilteredTransactions().filter(item => item.type === 'expense' && (item.category || 'Outros') === categoria);
   filtrados.forEach(item => {
     tabelaCorpo.innerHTML += `
       <tr>
@@ -1696,6 +1784,7 @@ function closeInstallmentsModal() { document.getElementById('installments-modal'
 // Inicialização de datas
 document.getElementById('date').value = formatDateInput(new Date());
 setPreset('this-month', document.querySelector('.btn-quick'));
+setReportPreset('this-month', document.querySelector('.report-quick'));
 </script>
 
 </body>
