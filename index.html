@@ -17,7 +17,7 @@
 
   <!-- Registro do Service Worker para PWA -->
   <script>
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
     navigator.serviceWorker.register('./sw.js')
       .then(() => console.log('PWA registrado com sucesso!'))
       .catch((err) => console.error('Erro ao registrar PWA:', err));
@@ -29,27 +29,32 @@
       --primary: #4F46E5;
       --primary-light: #EEF2FF;
       --primary-hover: #4338CA;
+      --primary-gradient: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+      --aux-gradient: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
       --green: #10B981;
       --green-light: #ECFDF5;
+      --green-dark: #047857;
       --red: #EF4444;
       --red-light: #FEF2F2;
+      --red-dark: #B91C1C;
       --amber: #F59E0B;
       --amber-light: #FFFBEB;
-      --bg: #F8FAFC;
+      --bg: #F1F5F9;
       --surface: #FFFFFF;
-      --gray-50: #F9FAFB;
-      --gray-100: #F3F4F6;
-      --gray-200: #E5E7EB;
-      --gray-400: #9CA3AF;
-      --gray-500: #6B7280;
-      --gray-700: #374151;
+      --gray-50: #F8FAFC;
+      --gray-100: #F1F5F9;
+      --gray-200: #E2E8F0;
+      --gray-300: #CBD5E1;
+      --gray-400: #94A3B8;
+      --gray-500: #64748B;
+      --gray-700: #334155;
       --gray-900: #0F172A;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --radius-sm: 8px;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 20px 30px -10px rgba(15, 23, 42, 0.12), 0 10px 12px -8px rgba(15, 23, 42, 0.06);
     }
 
     * {
@@ -64,6 +69,7 @@
       padding: 16px;
       color: var(--gray-900);
       line-height: 1.5;
+      min-height: 100vh;
     }
 
     /* TELA DE LOGIN E CADASTRO */
@@ -73,8 +79,8 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -84,78 +90,96 @@
 
     .login-card {
       background: var(--surface);
-      padding: 28px 24px;
+      padding: 32px 28px;
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-lg);
       border: 1px solid var(--gray-200);
       width: 100%;
-      max-width: 380px;
+      max-width: 400px;
       text-align: center;
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .login-card h2 {
       margin: 0 0 4px 0;
-      font-size: 1.4em;
+      font-size: 1.6em;
       color: var(--gray-900);
+      font-weight: 800;
     }
      
     /* CONTEÚDO PRINCIPAL */
     .container {
-      max-width: 480px;
+      max-width: 520px;
       margin: 0 auto;
       display: none;
-      padding-bottom: 24px;
+      padding-bottom: 28px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      padding: 4px 0;
+      margin-bottom: 16px;
+      padding: 6px 4px;
     }
     .header-brand {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-weight: 700;
-      font-size: 1em;
+      font-weight: 800;
+      font-size: 1.05em;
       color: var(--gray-900);
     }
     .header-brand span {
       background: var(--primary-light);
       color: var(--primary);
-      padding: 4px 8px;
-      border-radius: var(--radius-sm);
-      font-size: 0.8em;
+      padding: 5px 12px;
+      border-radius: 30px;
+      font-size: 0.82em;
+      font-weight: 700;
+      border: 1px solid rgba(79, 70, 229, 0.15);
     }
     .btn-logout {
       background: var(--surface);
       border: 1px solid var(--gray-200);
       color: var(--gray-500);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.8em;
       cursor: pointer;
       width: auto;
       margin: 0;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 20px;
       transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
     }
     .btn-logout:hover {
       background: var(--red-light);
       color: var(--red);
-      border-color: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.3);
+      transform: translateY(-1px);
     }
 
     .main-nav {
       display: flex;
       background: var(--surface);
       border-radius: var(--radius-lg);
-      padding: 5px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-sm);
+      padding: 6px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-md);
       border: 1px solid var(--gray-200);
+      gap: 4px;
     }
     .nav-tab {
       flex: 1;
@@ -163,17 +187,21 @@
       border: none;
       background: none;
       font-weight: 700;
-      font-size: 0.78em;
+      font-size: 0.8em;
       color: var(--gray-500);
       cursor: pointer;
       border-radius: var(--radius-md);
-      transition: all 0.25s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
     .nav-tab.active {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
     }
 
     .view-content { display: none; }
@@ -181,11 +209,12 @@
 
     .card {
       background: var(--surface);
-      padding: 20px;
+      padding: 22px;
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-md);
       border: 1px solid var(--gray-200);
-      margin-bottom: 16px;
+      margin-bottom: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     /* MODAIS */
@@ -195,8 +224,8 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(15, 23, 42, 0.5);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -208,15 +237,16 @@
 
     .modal-content, .modal-card {
       background: var(--surface);
-      width: 90%;
-      max-width: 650px;
+      width: 100%;
+      max-width: 620px;
       max-height: 85vh;
       border-radius: var(--radius-lg);
-      padding: 20px;
+      padding: 22px;
       box-shadow: var(--shadow-lg);
       display: flex;
       flex-direction: column;
       border: 1px solid var(--gray-200);
+      animation: popIn 0.25s ease-out;
     }
 
     .modal-header {
@@ -224,15 +254,18 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--gray-200);
-      padding-bottom: 12px;
+      padding-bottom: 14px;
       margin-bottom: 16px;
     }
 
     .modal-header h3 {
       margin: 0;
-      font-size: 1.1em;
-      color: var(--primary);
-      font-weight: 700;
+      font-size: 1.15em;
+      color: var(--gray-900);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .btn-fechar, .btn-close {
@@ -241,77 +274,92 @@
       font-size: 1.2rem;
       cursor: pointer;
       color: var(--gray-500);
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s;
     }
-    .btn-fechar:hover, .btn-close:hover { background: var(--gray-200); color: var(--gray-900); }
+    .btn-fechar:hover, .btn-close:hover { 
+      background: var(--red-light); 
+      color: var(--red); 
+      transform: rotate(90deg);
+    }
 
-    .modal-body { overflow-y: auto; }
+    .modal-body { overflow-y: auto; padding-right: 4px; }
 
     .tabela-detalhes {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
     }
     .tabela-detalhes th, .tabela-detalhes td {
-      padding: 10px;
+      padding: 12px 10px;
       text-align: left;
-      border-bottom: 1px solid var(--gray-100);
       font-size: 0.85rem;
     }
     .tabela-detalhes th {
-      background-color: var(--gray-50);
+      background-color: var(--gray-100);
       color: var(--gray-500);
       font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .tabela-detalhes td {
+      border-bottom: 1px solid var(--gray-100);
     }
 
     .reminder-card {
-      background: var(--amber-light);
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+      border: 1px solid rgba(245, 158, 11, 0.4);
       border-radius: var(--radius-lg);
-      padding: 16px;
-      margin-bottom: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-sm);
     }
     .reminder-card h4 {
-      margin: 0 0 10px 0;
-      color: #B45309;
+      margin: 0 0 12px 0;
+      color: #92400E;
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.95em;
-      font-weight: 700;
+      gap: 8px;
+      font-size: 0.98em;
+      font-weight: 800;
     }
     .reminder-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85em;
-      padding: 8px 0;
-      border-bottom: 1px dashed rgba(245, 158, 11, 0.3);
+      font-size: 0.88em;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(245, 158, 11, 0.35);
     }
     .reminder-item:last-child { border-bottom: none; }
-    .overdue-text { color: var(--red); font-weight: 700; }
-    .due-soon-text { color: #D97706; font-weight: 700; }
+    .overdue-text { color: var(--red-dark); font-weight: 800; }
+    .due-soon-text { color: #B45309; font-weight: 700; }
 
     .period-selector {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .quick-btns {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       background: var(--gray-100);
       padding: 4px;
       border-radius: var(--radius-md);
     }
     .btn-quick {
       flex: 1;
-      padding: 8px;
+      padding: 9px;
       font-size: 0.8em;
       border: none;
       background: transparent;
@@ -342,32 +390,255 @@
       letter-spacing: 0.5px;
     }
 
+    /* DASHBOARD GRID ESTILIZADO */
     .dash-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      text-align: center;
+      gap: 12px;
     }
     .dash-item {
       background: var(--gray-50);
-      padding: 12px 8px;
+      padding: 16px 14px;
       border-radius: var(--radius-md);
       border: 1px solid var(--gray-200);
-      transition: background 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
-    .dash-item:hover { background: var(--gray-100); }
+    .dash-item:hover { 
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .dash-item.clickable {
+      cursor: pointer;
+    }
+    .dash-item.clickable::after {
+      content: '➔';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 0.75em;
+      color: var(--gray-400);
+      transition: transform 0.2s;
+    }
+    .dash-item.clickable:hover::after {
+      transform: translateX(3px);
+      color: var(--primary);
+    }
+    .dash-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
     .dash-item span {
-      display: block;
-      font-size: 0.7em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72em;
       color: var(--gray-500);
-      margin-bottom: 4px;
       text-transform: uppercase;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 0.5px;
     }
-    .dash-item strong { font-size: 0.95em; font-weight: 800; }
+    .dash-item strong { 
+      font-size: 1.15em; 
+      font-weight: 800; 
+      letter-spacing: -0.3px;
+    }
     .val-in { color: var(--green); }
     .val-out { color: var(--red); }
+
+    /* ESTILOS DO CARTÃO PREMIUM DE CARTEIRA */
+    .wallet-hero-card {
+      background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+      color: white;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 12px 30px -5px rgba(49, 46, 129, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .wallet-hero-card::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+    }
+    .wallet-hero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .wallet-hero-header span {
+      font-size: 0.78em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .btn-toggle-eye {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+    .btn-toggle-eye:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .wallet-hero-balance {
+      font-size: 2em;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 4px 0 16px 0;
+    }
+    .wallet-hero-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .hero-stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .hero-stat-item span {
+      font-size: 0.7em;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .hero-stat-item strong {
+      font-size: 0.95em;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    /* BARRAS DE AÇÃO RÁPIDA NA CARTEIRA */
+    .quick-actions-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .quick-action-btn {
+      background: var(--surface);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .quick-action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-light);
+    }
+    .quick-action-btn .icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .quick-action-btn span {
+      font-size: 0.72em;
+      font-weight: 700;
+      color: var(--gray-700);
+    }
+
+    /* CARD DE SAÚDE FINANCEIRA */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-card h5 {
+      margin: 0 0 6px 0;
+      font-size: 0.72em;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .kpi-card .kpi-value {
+      font-size: 1.15em;
+      font-weight: 800;
+      color: var(--gray-900);
+    }
+    .kpi-subtext {
+      font-size: 0.72em;
+      color: var(--gray-400);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* CARD DE AUXÍLIO DESTACADO */
+    .dash-item-aux {
+      background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+      border: 1px solid #BAE6FD;
+      position: relative;
+    }
+    .dash-item-aux strong {
+      color: #0284C7;
+    }
+    .dash-item-aux span {
+      color: #0369A1;
+    }
+    .badge-interactive {
+      background: #0284C7;
+      color: white;
+      font-size: 0.62em;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.8; }
+      50% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0.8; }
+    }
 
     input, select, button {
       width: 100%;
@@ -388,20 +659,24 @@
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
     }
     button.btn-primary {
-      background-color: var(--primary);
+      background: var(--primary-gradient);
       color: white;
-      font-weight: 700;
+      font-weight: 800;
       border: none;
       cursor: pointer;
       margin-top: 16px;
       padding: 14px;
       border-radius: var(--radius-md);
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
     button.btn-primary:hover {
-      background-color: var(--primary-hover);
       transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4);
     }
     .btn-cancel {
       background-color: var(--gray-100);
@@ -411,7 +686,7 @@
       display: none;
       padding: 12px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
       border-radius: var(--radius-md);
     }
 
@@ -419,32 +694,38 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
-      margin-bottom: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
       border-radius: var(--radius-md);
       border: 1px solid var(--gray-200);
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      background-color: var(--surface);
     }
     .list-item:hover {
       border-color: var(--primary-light);
       box-shadow: var(--shadow-sm);
+      transform: translateX(2px);
     }
     .badge {
       display: inline-block;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 0.7em;
+      font-size: 0.72em;
       color: white;
       font-weight: 700;
       background-color: var(--primary);
     }
-    .badge-cat { background-color: var(--gray-100); color: var(--gray-700); }
-    .item-date { font-size: 0.75em; color: var(--gray-400); font-weight: 500; }
+    .badge-cat { 
+      background-color: var(--gray-100); 
+      color: var(--gray-700); 
+      border: 1px solid var(--gray-200);
+    }
+    .item-date { font-size: 0.75em; color: var(--gray-400); font-weight: 600; }
     .btn-icon {
       background: var(--gray-100);
       border: none;
       cursor: pointer;
-      font-size: 0.95em;
+      font-size: 0.9em;
       padding: 6px;
       width: 32px;
       height: 32px;
@@ -454,60 +735,73 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
+      color: var(--gray-700);
     }
     .btn-icon:hover {
       background: var(--gray-200);
-      transform: scale(1.05);
+      transform: scale(1.08);
     }
 
+    /* TABELA E CARDS DOS RELATÓRIOS */
     .report-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       margin-top: 16px;
     }
     .report-table th, .report-table td {
-      padding: 10px 8px;
+      padding: 12px 10px;
       text-align: left;
       font-size: 0.85em;
-      border-bottom: 1px solid var(--gray-100);
     }
     .report-table th {
       color: var(--gray-500);
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
-      font-size: 0.75em;
+      font-size: 0.7em;
+      letter-spacing: 0.5px;
+      background-color: var(--gray-50);
+      border-bottom: 2px solid var(--gray-200);
     }
     .report-table tbody tr {
       cursor: pointer;
       transition: background-color 0.2s;
     }
     .report-table tbody tr:hover { background-color: var(--gray-50); }
+    .report-table td { border-bottom: 1px solid var(--gray-100); }
+
     .chart-container {
       position: relative;
-      margin: auto;
-      height: 220px;
+      margin: 16px auto;
+      height: 230px;
       width: 100%;
     }
 
     .piggy-card {
       border: 1px solid var(--gray-200);
       border-radius: var(--radius-md);
-      padding: 16px;
-      margin-bottom: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
       background: var(--gray-50);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+    .piggy-card:hover {
+      box-shadow: var(--shadow-md);
+      background: var(--surface);
     }
     .piggy-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .piggy-title {
-      font-weight: 700;
+      font-weight: 800;
       font-size: 1.05em;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .progress-bar-bg {
       background-color: var(--gray-200);
@@ -515,13 +809,13 @@
       height: 12px;
       width: 100%;
       overflow: hidden;
-      margin: 10px 0;
+      margin: 12px 0;
     }
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--green) 0%, #34D399 100%);
+      background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
       width: 0%;
-      transition: width 0.4s ease;
+      transition: width 0.5s ease-out;
       border-radius: 10px;
     }
     .piggy-values {
@@ -529,21 +823,21 @@
       justify-content: space-between;
       font-size: 0.85em;
       color: var(--gray-500);
-      font-weight: 500;
+      font-weight: 600;
     }
     .piggy-actions {
       display: flex;
       gap: 8px;
-      margin-top: 12px;
+      margin-top: 14px;
       flex-wrap: wrap;
     }
     .btn-piggy {
-      padding: 6px 10px;
-      font-size: 0.75em;
+      padding: 7px 12px;
+      font-size: 0.78em;
       border-radius: var(--radius-sm);
       border: none;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 800;
       transition: all 0.2s;
     }
     .btn-piggy-add { background: var(--green); color: white; }
@@ -552,11 +846,39 @@
     .btn-piggy-del { background: var(--red-light); color: var(--red); }
     .btn-piggy:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    @media (max-width: 420px) {
-      body { padding: 8px; }
-      .card { padding: 14px; }
+    /* FILTROS INTERNOS DO MODAL DE AUXÍLIO */
+    .aux-filter-bar {
+      display: flex;
+      gap: 6px;
+      background: var(--gray-100);
+      padding: 4px;
+      border-radius: var(--radius-md);
+      margin-bottom: 14px;
+    }
+    .btn-aux-filter {
+      flex: 1;
+      padding: 7px;
+      font-size: 0.78em;
+      border: none;
+      background: transparent;
+      color: var(--gray-500);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .btn-aux-filter.active {
+      background: var(--surface);
+      color: #0284C7;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      .card { padding: 16px; }
       .dash-grid { grid-template-columns: 1fr !important; }
       .date-range-inputs { flex-direction: column; align-items: stretch; }
+      .nav-tab { font-size: 0.75em; padding: 8px 2px; }
     }
   </style>
 </head>
@@ -566,51 +888,51 @@
 <div id="login-overlay">
   <div class="login-card">
     <h2>💰 Meu Controle</h2>
-    <p id="login-subtitle" style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 14px 0;">Acesse sua carteira pessoal</p>
+    <p id="login-subtitle" style="font-size: 0.9em; color: var(--gray-500); margin: 0 0 16px 0; font-weight: 500;">Acesse sua carteira pessoal</p>
     
-    <div style="display: flex; background: var(--gray-100); padding: 4px; border-radius: var(--radius-sm); margin-bottom: 14px;">
-      <button type="button" id="tab-login" onclick="switchAuthMode('login')" style="flex: 1; padding: 6px; border: none; background: var(--surface); font-weight: 700; font-size: 0.85em; border-radius: 6px; cursor: pointer; color: var(--primary);">Entrar</button>
-      <button type="button" id="tab-register" onclick="switchAuthMode('register')" style="flex: 1; padding: 6px; border: none; background: transparent; font-weight: 700; font-size: 0.85em; border-radius: 6px; cursor: pointer; color: var(--gray-500);">Criar Conta</button>
+    <div style="display: flex; background: var(--gray-100); padding: 4px; border-radius: var(--radius-md); margin-bottom: 16px;">
+      <button type="button" id="tab-login" onclick="switchAuthMode('login')" style="flex: 1; padding: 8px; border: none; background: var(--surface); font-weight: 700; font-size: 0.85em; border-radius: 8px; cursor: pointer; color: var(--primary);">Entrar</button>
+      <button type="button" id="tab-register" onclick="switchAuthMode('register')" style="flex: 1; padding: 8px; border: none; background: transparent; font-weight: 700; font-size: 0.85em; border-radius: 8px; cursor: pointer; color: var(--gray-500);">Criar Conta</button>
     </div>
 
-    <button type="button" onclick="loginWithGoogle()" style="background: #ffffff; color: #374151; border: 1px solid var(--gray-200); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%; padding: 10px; border-radius: var(--radius-md); cursor: pointer;">
+    <button type="button" onclick="loginWithGoogle()" style="background: #ffffff; color: #374151; border: 1px solid var(--gray-200); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px; width: 100%; padding: 12px; border-radius: var(--radius-md); cursor: pointer; box-shadow: var(--shadow-sm);">
       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.21 21.34 7.32 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 11.7s.43 3.57 1.19 5.1l4.08-2.56z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.32 0 3.21 2.66 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
       Continuar com o Google
     </button>
 
-    <div style="display: flex; align-items: center; text-align: center; margin: 10px 0; color: var(--gray-400); font-size: 0.8em;">
+    <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--gray-400); font-size: 0.8em; font-weight: 600;">
       <hr style="flex: 1; border: none; border-top: 1px solid var(--gray-200);">
-      <span style="padding: 0 6px;">ou e-mail</span>
+      <span style="padding: 0 8px;">ou e-mail</span>
       <hr style="flex: 1; border: none; border-top: 1px solid var(--gray-200);">
     </div>
 
     <form id="auth-form" onsubmit="handleAuthSubmit(event)">
       <div id="name-field-container" style="text-align: left; display: none; margin-bottom: 10px;">
-        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Nome da Carteira / Usuário</label>
+        <label style="font-size: 0.72em; color: var(--gray-500); font-weight: 800; text-transform: uppercase;">Nome da Carteira / Usuário</label>
         <input type="text" id="register-name" placeholder="Ex: Maria Silva" style="margin-top: 4px;">
       </div>
 
       <div style="text-align: left;">
-        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">E-mail</label>
+        <label style="font-size: 0.72em; color: var(--gray-500); font-weight: 800; text-transform: uppercase;">E-mail</label>
         <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email" required style="margin-top: 4px;">
       </div>
       <div style="text-align: left; margin-top: 10px;">
-        <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Senha</label>
+        <label style="font-size: 0.72em; color: var(--gray-500); font-weight: 800; text-transform: uppercase;">Senha</label>
         <input type="password" id="auth-pass" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required style="margin-top: 4px;">
       </div>
 
-      <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px; text-align: left;">
         <input type="checkbox" id="remember-me" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
         <label for="remember-me" style="font-size: 0.85em; color: var(--gray-700); font-weight: 600; cursor: pointer;">Lembrar meu e-mail</label>
       </div>
 
-      <div style="text-align: right; margin-top: 4px;">
-        <a href="#" onclick="resetPassword(event)" style="font-size: 0.75em; color: var(--primary); text-decoration: none; font-weight: 600;">Esqueceu a senha?</a>
+      <div style="text-align: right; margin-top: 6px;">
+        <a href="#" onclick="resetPassword(event)" style="font-size: 0.78em; color: var(--primary); text-decoration: none; font-weight: 700;">Esqueceu a senha?</a>
       </div>
 
-      <button type="submit" id="auth-submit-btn" class="btn-primary" style="margin-top: 12px; width: 100%;">Entrar</button>
+      <button type="submit" id="auth-submit-btn" class="btn-primary" style="margin-top: 14px; width: 100%;">Entrar</button>
     </form>
-    <p id="login-error" style="color: var(--red); font-size: 0.85em; display: none; margin-top: 12px; font-weight: 600;"></p>
+    <p id="login-error" style="color: var(--red); font-size: 0.85em; display: none; margin-top: 12px; font-weight: 700;"></p>
   </div>
 </div>
 
@@ -619,7 +941,7 @@
 
   <div class="header-top">
     <div class="header-brand">
-      💳 Carteira de <span id="user-wallet-name" style="background: var(--primary-light); color: var(--primary); padding: 4px 8px; border-radius: var(--radius-sm); font-size: 0.9em;">Minha Carteira</span>
+      💳 Carteira de <span id="user-wallet-name">Minha Carteira</span>
     </div>
     <button class="btn-logout" onclick="logout()">Sair 🔒</button>
   </div>
@@ -642,31 +964,101 @@
       <div id="reminder-list"></div>
     </div>
 
-    <div class="card">
-      <!-- GRID RESUMO FINANCEIRO -->
-      <div class="dash-grid" style="grid-template-columns: repeat(2, 1fr);">
-        <div class="dash-item" title="Saldo total acumulado na carteira comum">
-          <span>Saldo Geral</span>
-          <strong id="dash-balance">R$ 0,00</strong>
+    <!-- HERO CARD DA CARTEIRA PROFISSIONAL -->
+    <div class="wallet-hero-card">
+      <div class="wallet-hero-header">
+        <span>💼 Saldo Total Consolidado</span>
+        <button type="button" class="btn-toggle-eye" onclick="toggleValuesVisibility()" title="Ocultar/Mostrar valores">
+          <span id="eye-icon">👁️</span>
+        </button>
+      </div>
+      <div class="wallet-hero-balance" id="dash-balance">R$ 0,00</div>
+      <div class="wallet-hero-stats">
+        <div class="hero-stat-item">
+          <span>Fluxo Mês Atual</span>
+          <strong id="hero-month-flow">R$ 0,00</strong>
         </div>
-        <div class="dash-item" style="background-color: var(--primary-light); border-color: rgba(79, 70, 229, 0.2);" title="Saldo exclusivo do Auxílio de Custo">
-          <span style="color: var(--primary);">Saldo Auxílio</span>
-          <strong id="dash-aux-balance" style="color: var(--primary);">R$ 0,00</strong>
-        </div>
-        <div class="dash-item" onclick="abrirModalDetalhes('entrada')" style="cursor: pointer;" title="Clique para ver entradas">
-          <span>Entradas Totais</span>
-          <strong id="dash-in" class="val-in">R$ 0,00</strong>
-        </div>
-        <div class="dash-item" onclick="abrirModalDetalhes('saida')" style="cursor: pointer;" title="Clique para ver saídas">
-          <span>Saídas Totais</span>
-          <strong id="dash-out" class="val-out">R$ 0,00</strong>
+        <div class="hero-stat-item">
+          <span>Poupança Estimada</span>
+          <strong id="hero-savings-rate">0%</strong>
         </div>
       </div>
     </div>
 
-    <!-- BOTÃO PARA NOVO LANÇAMENTO -->
-    <button class="btn-primary" onclick="abrirModalTransacao()" style="margin-top: 0; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-      ➕ Novo Lançamento
+    <!-- BOTÕES DE AÇÕES RÁPIDAS -->
+    <div class="quick-actions-bar">
+      <div class="quick-action-btn" onclick="quickAddTransaction('income')">
+        <div class="icon-box" style="background: var(--green-light); color: var(--green);">📈</div>
+        <span>+ Receita</span>
+      </div>
+      <div class="quick-action-btn" onclick="quickAddTransaction('expense')">
+        <div class="icon-box" style="background: var(--red-light); color: var(--red);">📉</div>
+        <span>+ Despesa</span>
+      </div>
+      <div class="quick-action-btn" onclick="quickAddAuxilio()">
+        <div class="icon-box" style="background: #E0F2FE; color: #0284C7;">💳</div>
+        <span>+ Auxílio</span>
+      </div>
+      <div class="quick-action-btn" onclick="switchView('cofrinhos')">
+        <div class="icon-box" style="background: #FEF3C7; color: #D97706;">🐷</div>
+        <span>Cofrinhos</span>
+      </div>
+    </div>
+
+    <!-- INDICADORES DE SAÚDE FINANCEIRA (KPIs) -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <h5>Taxa de Poupança</h5>
+        <div class="kpi-value" id="kpi-savings">0%</div>
+        <div class="kpi-subtext" id="kpi-savings-sub">Entradas guardadas</div>
+      </div>
+      <div class="kpi-card">
+        <h5>Renda Comprometida</h5>
+        <div class="kpi-value" id="kpi-commitment">0%</div>
+        <div class="kpi-subtext" id="kpi-commitment-sub">Gastos vs Entradas</div>
+      </div>
+    </div>
+
+    <!-- CARDS DE SALDO SEPARADOS (GERAL & AUXÍLIO & RESUMOS) -->
+    <div class="card">
+      <h3 style="margin: 0 0 14px 0; font-size: 1em; color: var(--gray-700); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Resumo por Carteira</h3>
+      <div class="dash-grid">
+
+        <!-- CARD CLICÁVEL DO SALDO AUXÍLIO -->
+        <div class="dash-item dash-item-aux clickable" onclick="abrirModalAuxilio()" title="Clique para visualizar os detalhes do Auxílio de Custo">
+          <div class="dash-item-header">
+            <span>💳 Auxílio Custo</span>
+            <span class="badge-interactive">Detalhes</span>
+          </div>
+          <strong id="dash-aux-balance">R$ 0,00</strong>
+        </div>
+
+        <div class="dash-item clickable" onclick="abrirModalDetalhes('entrada')" title="Clique para ver todas as entradas">
+          <div class="dash-item-header">
+            <span>📈 Entradas Totais</span>
+          </div>
+          <strong id="dash-in" class="val-in">R$ 0,00</strong>
+        </div>
+
+        <div class="dash-item clickable" onclick="abrirModalDetalhes('saida')" title="Clique para ver todas as saídas">
+          <div class="dash-item-header">
+            <span>📉 Saídas Totais</span>
+          </div>
+          <strong id="dash-out" class="val-out">R$ 0,00</strong>
+        </div>
+
+        <div class="dash-item clickable" onclick="abrirModalDetalhes('pendente')" title="Clique para ver todos os pagamentos pendentes">
+          <div class="dash-item-header">
+            <span>⏳ Pendentes</span>
+          </div>
+          <strong id="dash-pending" style="color: var(--amber);">R$ 0,00</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTÃO PARA NOVO LANÇAMENTO GERAL -->
+    <button class="btn-primary" onclick="abrirModalTransacao()" style="margin-top: 0; margin-bottom: 16px; width: 100%;">
+      ➕ Lançamento Personalizado
     </button>
   </div>
 
@@ -691,9 +1083,9 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 16px; border-top: 1px solid var(--gray-100); padding-top: 12px;">
-        <h3 style="margin:0; font-size: 1.15em; color: var(--gray-900);">Histórico do Período</h3>
-        <button class="btn-primary" onclick="abrirModalTransacao()" style="margin:0; padding: 8px 12px; font-size: 0.8em; width: auto;">+ Novo Lançamento</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 16px; border-top: 1px solid var(--gray-200); padding-top: 14px;">
+        <h3 style="margin:0; font-size: 1.15em; color: var(--gray-900); font-weight: 800;">Histórico do Período</h3>
+        <button class="btn-primary" onclick="abrirModalTransacao()" style="margin:0; padding: 8px 14px; font-size: 0.8em; width: auto;">+ Lançar</button>
       </div>
       <div id="transaction-list"></div>
     </div>
@@ -703,8 +1095,8 @@
   <div id="view-cofrinhos" class="view-content">
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin:0; font-size: 1.15em; color: var(--gray-900);">Meus Cofrinhos 🎯</h3>
-        <button class="btn-primary" onclick="createNewPiggy()" style="margin:0; padding: 8px 12px; font-size: 0.8em; width: auto;">+ Novo Cofrinho</button>
+        <h3 style="margin:0; font-size: 1.15em; color: var(--gray-900); font-weight: 800;">Meus Cofrinhos 🎯</h3>
+        <button class="btn-primary" onclick="createNewPiggy()" style="margin:0; padding: 8px 14px; font-size: 0.8em; width: auto;">+ Novo Cofrinho</button>
       </div>
       <div id="piggy-list-container"></div>
     </div>
@@ -731,10 +1123,36 @@
         </div>
       </div>
 
-      <h3 style="margin-top:0; font-size: 1.15em; color: var(--gray-900);">Gastos por Categoria</h3>
+      <!-- PAINEL DE RESUMO DOS RELATÓRIOS (ENTRADAS E SAÍDAS DO PERÍODO) -->
+      <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 10px 0; font-size: 0.82em; text-transform: uppercase; color: var(--gray-500); font-weight: 800; letter-spacing: 0.5px;">Resumo do Período Selecionado</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+          <div style="background: var(--surface); padding: 10px 6px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+            <div style="font-size: 0.7em; color: var(--gray-500); font-weight: 700;">ENTRADAS</div>
+            <strong id="report-total-in" class="val-in" style="font-size: 0.95em;">R$ 0,00</strong>
+          </div>
+          <div style="background: var(--surface); padding: 10px 6px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+            <div style="font-size: 0.7em; color: var(--gray-500); font-weight: 700;">SAÍDAS</div>
+            <strong id="report-total-out" class="val-out" style="font-size: 0.95em;">R$ 0,00</strong>
+          </div>
+          <div style="background: var(--surface); padding: 10px 6px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+            <div style="font-size: 0.7em; color: var(--gray-500); font-weight: 700;">SALDO</div>
+            <strong id="report-total-balance" style="font-size: 0.95em;">R$ 0,00</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRÁFICO COMPARATIVO GERAL ENTRADAS VS SAÍDAS -->
+      <h3 style="margin-top: 10px; font-size: 1.05em; color: var(--gray-900); font-weight: 800;">Comparativo Entradas vs Saídas</h3>
+      <div class="chart-container" style="height: 180px;">
+        <canvas id="overviewBarChart"></canvas>
+      </div>
+
+      <h3 style="margin-top: 24px; font-size: 1.05em; color: var(--gray-900); font-weight: 800;">Gastos por Categoria</h3>
       <div class="chart-container">
         <canvas id="categoryChart"></canvas>
       </div>
+
       <table class="report-table">
         <thead>
           <tr>
@@ -748,6 +1166,56 @@
     </div>
   </div>
 
+</div>
+
+<!-- MODAL DE DETALHES DO AUXÍLIO DE CUSTO -->
+<div id="modal-auxilio" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>💳 Detalhes do Auxílio de Custo</h3>
+      <button onclick="fecharModalAuxilio()" class="btn-fechar">&times;</button>
+    </div>
+
+    <!-- RESUMO RÁPIDO DO AUXÍLIO -->
+    <div style="background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%); border: 1px solid #BAE6FD; border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px;">
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
+        <div>
+          <div style="font-size: 0.68em; color: #0369A1; font-weight: 800;">RECEBIDAS</div>
+          <strong id="aux-modal-in" style="color: var(--green); font-size: 0.9em;">R$ 0,00</strong>
+        </div>
+        <div>
+          <div style="font-size: 0.68em; color: #0369A1; font-weight: 800;">GASTOS</div>
+          <strong id="aux-modal-out" style="color: var(--red); font-size: 0.9em;">R$ 0,00</strong>
+        </div>
+        <div>
+          <div style="font-size: 0.68em; color: #0369A1; font-weight: 800;">SALDO ATUAL</div>
+          <strong id="aux-modal-balance" style="color: #0284C7; font-size: 0.9em;">R$ 0,00</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- BARRAS DE FILTRO DO AUXÍLIO -->
+    <div class="aux-filter-bar">
+      <button class="btn-aux-filter active" onclick="filtrarAuxilioList('all', this)">Todos</button>
+      <button class="btn-aux-filter" onclick="filtrarAuxilioList('income', this)">Entradas (+)</button>
+      <button class="btn-aux-filter" onclick="filtrarAuxilioList('expense', this)">Gastos (-)</button>
+    </div>
+
+    <div class="modal-body">
+      <table class="tabela-detalhes">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="auxilio-tabela-corpo"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL DE NOVO / EDITAR LANÇAMENTO -->
@@ -764,11 +1232,11 @@
         
         <div style="display: flex; gap: 10px; margin-top: 8px;">
           <div style="flex: 2;">
-            <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Valor da Parcela (R$)</label>
+            <label style="font-size: 0.72em; color: var(--gray-500); font-weight: 800; text-transform: uppercase;">Valor da Parcela (R$)</label>
             <input type="number" step="0.01" min="0.01" id="amount" placeholder="0.00" required>
           </div>
           <div style="flex: 1;" id="installments-wrapper">
-            <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Parcelas</label>
+            <label style="font-size: 0.72em; color: var(--gray-500); font-weight: 800; text-transform: uppercase;">Parcelas</label>
             <select id="installments">
               <option value="1">1x (À vista)</option>
               <option value="2">2x</option>
@@ -787,7 +1255,7 @@
         </div>
 
         <div style="margin-top: 10px;">
-          <label style="font-size: 0.75em; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Data de Vencimento / Pagamento</label>
+          <label style="font-size: 0.72em; color: var(--gray-500); font-weight: 800; text-transform: uppercase;">Data de Vencimento / Pagamento</label>
           <input type="date" id="date" required>
         </div>
 
@@ -828,7 +1296,7 @@
   </div>
 </div>
 
-<!-- MODAL DE DETALHES -->
+<!-- MODAL DE DETALHES GERAIS -->
 <div id="modal-detalhes" class="modal-overlay hidden">
   <div class="modal-content">
     <div class="modal-header">
@@ -859,7 +1327,7 @@
       <h3 id="modal-title">Detalhes das Parcelas</h3>
       <button class="btn-close" onclick="closeInstallmentsModal()">✖</button>
     </div>
-    <div id="modal-installments-list"></div>
+    <div id="modal-installments-list" class="modal-body"></div>
   </div>
 </div>
 
@@ -900,8 +1368,11 @@ let piggyData = {};
 
 let activeView = 'carteira';
 let categoryChartInstance = null;
+let overviewBarChartInstance = null;
 let activeTypeFilter = 'all';
 let isRegisterMode = false;
+let auxActiveTypeFilter = 'all';
+let hideValues = false;
 
 const form = document.getElementById('finance-form');
 const listEl = document.getElementById('transaction-list');
@@ -1046,7 +1517,7 @@ function resetPassword(e) {
 function updateAuthUI(user) {
   const accountStatusEl = document.getElementById('account-status');
   accountStatusEl.innerHTML = `
-    <div style="background: var(--green-light); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: var(--radius-md); margin-bottom: 14px; font-size: 0.8em; color: #047857; font-weight: 600;">
+    <div style="background: var(--green-light); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 14px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 0.8em; color: var(--green-dark); font-weight: 700; display: flex; align-items: center; gap: 6px;">
       ✅ Conectado como: ${user.email}
     </div>
   `;
@@ -1097,7 +1568,29 @@ function initDatabaseListeners() {
 // UTILITÁRIOS E FORMATADORES
 // ==========================================
 
-const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+const formatCurrency = (val) => {
+  if (hideValues) return "••••••";
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+};
+
+function toggleValuesVisibility() {
+  hideValues = !hideValues;
+  const eyeIcon = document.getElementById('eye-icon');
+  eyeIcon.innerText = hideValues ? '🙈' : '👁️';
+  refreshDataViews();
+}
+
+function quickAddTransaction(type) {
+  resetForm();
+  document.getElementById('type').value = type;
+  document.getElementById('modal-transacao').classList.remove('hidden');
+}
+
+function quickAddAuxilio() {
+  resetForm();
+  document.getElementById('category').value = 'Auxílio de Custo';
+  document.getElementById('modal-transacao').classList.remove('hidden');
+}
 
 function formatDateInput(date) {
   const year = date.getFullYear();
@@ -1152,10 +1645,9 @@ form.addEventListener('submit', async (e) => {
 
     if (totalGastoNovo > auxBalance) {
       alert(`⚠️ Saldo insuficiente no Auxílio de Custo!\n\nSaldo disponível atual: ${formatCurrency(auxBalance)}\nValor tentado: ${formatCurrency(totalGastoNovo)}`);
-      return; // Interrompe o salvamento
+      return;
     }
   }
-  // ------------------------------------------------
 
   submitBtn.disabled = true;
   submitBtn.innerText = "Salvando...";
@@ -1351,11 +1843,6 @@ function switchView(viewName) {
   refreshDataViews();
 }
 
-function filterByTypeAndMonth(type) {
-  activeTypeFilter = type;
-  refreshDataViews();
-}
-
 function refreshDataViews() {
   renderDashboard();
   if (activeView === 'carteira') {
@@ -1376,12 +1863,31 @@ function refreshDataViews() {
 function renderDashboard() {
   let totalIn = 0, totalOut = 0;
   let auxTotalIn = 0, auxTotalOut = 0;
+  let pendingTotal = 0;
+
+  // Calculando Mês Atual
+  const now = new Date();
+  const currentMonthStart = formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
+  const currentMonthEnd = formatDateInput(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+  let currentMonthIn = 0;
+  let currentMonthOut = 0;
 
   allTransactions.forEach(t => {
-    if (t.status !== 'pago') return;
     const amt = Number(t.amount) || 0;
 
-    // Separações por Categoria
+    if (t.status === 'pendente') {
+      pendingTotal += amt;
+    }
+
+    if (t.status !== 'pago') return;
+
+    // Métricas do Mês Atual
+    if (t.date >= currentMonthStart && t.date <= currentMonthEnd) {
+      if (t.type === 'income') currentMonthIn += amt;
+      else currentMonthOut += amt;
+    }
+
+    // Separação por Categoria (Auxílio de Custo vs Geral)
     if (t.category === 'Auxílio de Custo') {
       if (t.type === 'income') auxTotalIn += amt;
       else auxTotalOut += amt;
@@ -1393,19 +1899,49 @@ function renderDashboard() {
 
   const balance = totalIn - totalOut;
   const auxBalance = auxTotalIn - auxTotalOut;
+  const currentMonthFlow = currentMonthIn - currentMonthOut;
 
-  // Atualiza os elementos visuais na tela
+  // Atualiza os elementos na tela principal da carteira
   document.getElementById('dash-in').innerText = formatCurrency(totalIn);
   document.getElementById('dash-out').innerText = formatCurrency(totalOut);
 
   const balanceEl = document.getElementById('dash-balance');
   balanceEl.innerText = formatCurrency(balance);
-  balanceEl.style.color = balance >= 0 ? 'var(--green)' : 'var(--red)';
 
   const auxBalanceEl = document.getElementById('dash-aux-balance');
   if (auxBalanceEl) {
     auxBalanceEl.innerText = formatCurrency(auxBalance);
-    auxBalanceEl.style.color = auxBalance >= 0 ? 'var(--primary)' : 'var(--red)';
+    auxBalanceEl.style.color = auxBalance >= 0 ? '#0284C7' : 'var(--red)';
+  }
+
+  // Pendentes
+  const pendingEl = document.getElementById('dash-pending');
+  if (pendingEl) pendingEl.innerText = formatCurrency(pendingTotal);
+
+  // Mês Atual e Hero Stats
+  const heroFlowEl = document.getElementById('hero-month-flow');
+  if (heroFlowEl) {
+    heroFlowEl.innerText = formatCurrency(currentMonthFlow);
+    heroFlowEl.style.color = currentMonthFlow >= 0 ? '#34D399' : '#FCA5A5';
+  }
+
+  // Cálculos de KPIs Profissionais
+  const savingsRate = currentMonthIn > 0 ? Math.max(0, ((currentMonthIn - currentMonthOut) / currentMonthIn) * 100) : 0;
+  const commitmentRate = currentMonthIn > 0 ? (currentMonthOut / currentMonthIn) * 100 : 0;
+
+  const heroSavingsEl = document.getElementById('hero-savings-rate');
+  if (heroSavingsEl) heroSavingsEl.innerText = hideValues ? "•••" : `${savingsRate.toFixed(0)}%`;
+
+  const kpiSavingsEl = document.getElementById('kpi-savings');
+  if (kpiSavingsEl) {
+    kpiSavingsEl.innerText = hideValues ? "•••" : `${savingsRate.toFixed(1)}%`;
+    kpiSavingsEl.style.color = savingsRate >= 20 ? 'var(--green)' : (savingsRate >= 0 ? 'var(--amber)' : 'var(--red)');
+  }
+
+  const kpiCommitmentEl = document.getElementById('kpi-commitment');
+  if (kpiCommitmentEl) {
+    kpiCommitmentEl.innerText = hideValues ? "•••" : `${commitmentRate.toFixed(1)}%`;
+    kpiCommitmentEl.style.color = commitmentRate <= 70 ? 'var(--green)' : (commitmentRate <= 90 ? 'var(--amber)' : 'var(--red)');
   }
 }
 
@@ -1414,7 +1950,7 @@ function renderList() {
   const filtered = getFilteredTransactions();
 
   if (filtered.length === 0) {
-    listEl.innerHTML = '<p style="text-align:center; color: var(--gray-400); font-size: 0.9em; padding: 12px 0;">Nenhum registro encontrado neste período.</p>';
+    listEl.innerHTML = '<p style="text-align:center; color: var(--gray-400); font-size: 0.9em; padding: 16px 0; font-weight: 600;">Nenhum registro encontrado neste período.</p>';
     return;
   }
 
@@ -1430,16 +1966,16 @@ function renderList() {
     const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : item.date;
 
     const isPaid = item.status !== 'pendente';
-    div.style.opacity = isPaid ? '1' : '0.75';
+    div.style.opacity = isPaid ? '1' : '0.8';
     div.style.backgroundColor = isPaid ? 'var(--surface)' : 'var(--amber-light)';
-    div.style.borderLeft = `4px solid ${isPaid ? 'transparent' : 'var(--amber)'}`;
+    div.style.borderLeft = `4px solid ${isPaid ? (item.category === 'Auxílio de Custo' ? '#0284C7' : 'var(--primary)') : 'var(--amber)'}`;
 
     div.innerHTML = `
       <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
         <input type="checkbox" ${isPaid ? 'checked' : ''} onchange="toggleStatus('${item.id}', this.checked)" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
         <div style="flex: 1; cursor: pointer;" onclick="showInstallments('${item.id}')">
-          <div style="font-weight: 700; font-size: 0.9em; color: var(--gray-900);">
-            ${item.description} ${!isPaid ? '<span style="color: var(--amber); font-size: 0.75em; font-weight: 600;">(Pendente)</span>' : ''}
+          <div style="font-weight: 800; font-size: 0.9em; color: var(--gray-900);">
+            ${item.description} ${!isPaid ? '<span style="color: var(--amber); font-size: 0.75em; font-weight: 700;">(Pendente)</span>' : ''}
           </div>
           <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
             <span class="badge badge-cat">${item.category || 'Outros'}</span>
@@ -1447,7 +1983,7 @@ function renderList() {
           </div>
         </div>
         <div style="text-align: right;">
-          <div class="${valClass}" style="font-weight: 800; font-size: 0.9em;">${valSign} ${formatCurrency(item.amount)}</div>
+          <div class="${valClass}" style="font-weight: 800; font-size: 0.92em;">${valSign} ${formatCurrency(item.amount)}</div>
           <div style="margin-top: 4px;">
             <button class="btn-icon" onclick="showInstallments('${item.id}')" title="Parcelas">🗓️</button>
             <button class="btn-icon" onclick="editTransaction('${item.id}')" title="Editar">✏️</button>
@@ -1494,15 +2030,75 @@ function checkReminders() {
 
     div.innerHTML = `
       <div><strong>${item.description}</strong> - ${formatCurrency(item.amount)}<br>${statusBadge}</div>
-      <button onclick="toggleStatus('${item.id}', true)" style="width: auto; padding: 6px 10px; font-size: 0.75em; background: var(--green); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">Marcar Pago</button>
+      <button onclick="toggleStatus('${item.id}', true)" style="width: auto; padding: 6px 12px; font-size: 0.75em; background: var(--green); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; box-shadow: var(--shadow-sm);">Marcar Pago</button>
     `;
     reminderList.appendChild(div);
   });
 }
 
+// ==========================================
+// RELATÓRIOS (TOTAL DE ENTRADAS, SAÍDAS E GRÁFICOS)
+// ==========================================
+
 function renderReports() {
   const filtered = getReportFilteredTransactions();
-  const expenses = filtered.filter(t => t.type === 'expense');
+  
+  // Totais do Período
+  let reportIn = 0;
+  let reportOut = 0;
+
+  filtered.forEach(t => {
+    if (t.status !== 'pago') return;
+    const amt = Number(t.amount) || 0;
+    if (t.type === 'income') reportIn += amt;
+    if (t.type === 'expense') reportOut += amt;
+  });
+
+  const reportBalance = reportIn - reportOut;
+
+  // Atualiza no UI os Totais
+  document.getElementById('report-total-in').innerText = formatCurrency(reportIn);
+  document.getElementById('report-total-out').innerText = formatCurrency(reportOut);
+  
+  const reportBalanceEl = document.getElementById('report-total-balance');
+  reportBalanceEl.innerText = formatCurrency(reportBalance);
+  reportBalanceEl.style.color = reportBalance >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // 1. Gráfico de Barras Comparativo Geral (Entradas vs Saídas)
+  const barCtx = document.getElementById('overviewBarChart').getContext('2d');
+  if (overviewBarChartInstance) overviewBarChartInstance.destroy();
+
+  overviewBarChartInstance = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Entradas', 'Saídas'],
+      datasets: [{
+        label: 'Total R$',
+        data: [reportIn, reportOut],
+        backgroundColor: ['#10B981', '#EF4444'],
+        borderRadius: 8,
+        barThickness: 38
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (value) => 'R$ ' + value
+          }
+        }
+      }
+    }
+  });
+
+  // 2. Gastos por Categoria
+  const expenses = filtered.filter(t => t.type === 'expense' && t.status === 'pago');
   const categories = {};
   let totalExpense = 0;
 
@@ -1522,7 +2118,7 @@ function renderReports() {
       labels: Object.keys(categories),
       datasets: [{
         data: Object.values(categories),
-        backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6','#8B5CF6', '#EC4899', '#14B8A6', '#F97316','#06B6D4', '#6B7280']
+        backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#06B6D4', '#6B7280']
       }]
     },
     options: {
@@ -1538,13 +2134,85 @@ function renderReports() {
 
   const tableBody = document.getElementById('category-table-body');
   tableBody.innerHTML = '';
-  Object.keys(categories).forEach(cat => {
-    const val = categories[cat];
-    const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : '0.0';
-    const tr = document.createElement('tr');
-    tr.onclick = () => abrirModalCategoriaReport(cat);
-    tr.innerHTML = `<td>${cat}</td><td>${formatCurrency(val)}</td><td>${pct}%</td>`;
-    tableBody.appendChild(tr);
+  if (Object.keys(categories).length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--gray-400); padding: 12px 0;">Nenhuma saída neste período.</td></tr>';
+  } else {
+    Object.keys(categories).forEach(cat => {
+      const val = categories[cat];
+      const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : '0.0';
+      const tr = document.createElement('tr');
+      tr.onclick = () => abrirModalCategoriaReport(cat);
+      tr.innerHTML = `<td><strong>${cat}</strong></td><td>${formatCurrency(val)}</td><td><strong>${pct}%</strong></td>`;
+      tableBody.appendChild(tr);
+    });
+  }
+}
+
+// ==========================================
+// MODAL EXCLUSIVO DO AUXÍLIO DE CUSTO
+// ==========================================
+
+function abrirModalAuxilio() {
+  renderAuxilioModalContent();
+  document.getElementById('modal-auxilio').classList.remove('hidden');
+}
+
+function fecharModalAuxilio() {
+  document.getElementById('modal-auxilio').classList.add('hidden');
+}
+
+function filtrarAuxilioList(type, elementBtn) {
+  auxActiveTypeFilter = type;
+  document.querySelectorAll('.btn-aux-filter').forEach(b => b.classList.remove('active'));
+  if (elementBtn) elementBtn.classList.add('active');
+  renderAuxilioModalContent();
+}
+
+function renderAuxilioModalContent() {
+  let auxTotalIn = 0;
+  let auxTotalOut = 0;
+
+  // Processa totais gerais do Auxílio de Custo
+  allTransactions.forEach(t => {
+    if (t.category === 'Auxílio de Custo' && t.status === 'pago') {
+      const amt = Number(t.amount) || 0;
+      if (t.type === 'income') auxTotalIn += amt;
+      if (t.type === 'expense') auxTotalOut += amt;
+    }
+  });
+
+  const auxBalance = auxTotalIn - auxTotalOut;
+
+  document.getElementById('aux-modal-in').innerText = formatCurrency(auxTotalIn);
+  document.getElementById('aux-modal-out').innerText = formatCurrency(auxTotalOut);
+  document.getElementById('aux-modal-balance').innerText = formatCurrency(auxBalance);
+
+  // Filtra itens para exibir na tabela
+  const auxItems = allTransactions.filter(t => {
+    if (t.category !== 'Auxílio de Custo') return false;
+    if (auxActiveTypeFilter === 'all') return true;
+    return t.type === auxActiveTypeFilter;
+  });
+
+  const tabelaCorpo = document.getElementById('auxilio-tabela-corpo');
+  tabelaCorpo.innerHTML = '';
+
+  if (auxItems.length === 0) {
+    tabelaCorpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--gray-400); padding: 14px;">Nenhum lançamento de Auxílio de Custo encontrado.</td></tr>`;
+    return;
+  }
+
+  auxItems.forEach(item => {
+    const isIncome = item.type === 'income';
+    const isPaid = item.status === 'pago';
+    tabelaCorpo.innerHTML += `
+      <tr>
+        <td>${item.date.split('-').reverse().join('/')}</td>
+        <td><strong>${item.description}</strong></td>
+        <td><span class="badge" style="background:${isIncome ? 'var(--green)' : 'var(--red)'}">${isIncome ? 'Entrada' : 'Gasto'}</span></td>
+        <td style="font-weight: 800; color: ${isIncome ? 'var(--green)' : 'var(--red)'};">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</td>
+        <td style="color: ${isPaid ? 'var(--green)' : 'var(--amber)'}; font-weight:700;">${isPaid ? '✓ Pago' : '⏳ Pendente'}</td>
+      </tr>`;
   });
 }
 
@@ -1559,7 +2227,7 @@ function renderPiggies() {
 
   const keys = Object.keys(piggyData);
   if (keys.length === 0) {
-    container.innerHTML = '<p style="text-align:center; color: var(--gray-400); font-size: 0.9em; padding: 12px 0;">Nenhum cofrinho cadastrado.</p>';
+    container.innerHTML = '<p style="text-align:center; color: var(--gray-400); font-size: 0.9em; padding: 16px 0; font-weight: 600;">Nenhum cofrinho cadastrado.</p>';
     return;
   }
 
@@ -1569,7 +2237,7 @@ function renderPiggies() {
     let totalPiggy = 0;
 
     allTransactions.forEach(t => {
-      if (t.description === `Cofrinho: ${labelText}`) {
+      if (t.description === `Cofrinho: ${labelText}` && t.status === 'pago') {
         if (t.type === 'expense') totalPiggy += Number(t.amount);
         else if (t.type === 'income') totalPiggy -= Number(t.amount);
       }
@@ -1584,7 +2252,7 @@ function renderPiggies() {
     card.innerHTML = `
       <div class="piggy-header">
         <span class="piggy-title">🎯 ${labelText}</span>
-        <strong style="color: var(--primary);">${pct}%</strong>
+        <strong style="color: var(--primary); font-size: 1.05em;">${pct}%</strong>
       </div>
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" style="width: ${pct}%;"></div>
@@ -1638,7 +2306,7 @@ async function updatePiggyAmount(key, action) {
 
   let totalPiggy = 0;
   allTransactions.forEach(t => {
-    if (t.description === `Cofrinho: ${label}`) {
+    if (t.description === `Cofrinho: ${label}` && t.status === 'pago') {
       if (t.type === 'expense') totalPiggy += Number(t.amount);
       else if (t.type === 'income') totalPiggy -= Number(t.amount);
     }
@@ -1704,32 +2372,44 @@ async function deletePiggy(key) {
 }
 
 // ==========================================
-// MODAIS
+// MODAIS ADICIONAIS
 // ==========================================
 
 function abrirModalDetalhes(tipoDesejado) {
   const modal = document.getElementById('modal-detalhes');
   const titulo = document.getElementById('modal-titulo');
   const tabelaCorpo = document.getElementById('modal-tabela-corpo');
-  const isIncome = tipoDesejado === 'entrada';
 
-  titulo.innerText = isIncome ? 'Detalhes de Entradas' : 'Detalhes de Saídas';
+  if (tipoDesejado === 'pendente') {
+    titulo.innerText = 'Lançamentos Pendentes de Pagamento';
+  } else {
+    const isIncome = tipoDesejado === 'entrada';
+    titulo.innerText = isIncome ? 'Detalhes de Entradas Totais' : 'Detalhes de Saídas Totais';
+  }
+  
   tabelaCorpo.innerHTML = '';
 
-  const filtrados = allTransactions.filter(item => item.status === 'pago' && item.type === (isIncome ? 'income' : 'expense'));
+  const filtrados = allTransactions.filter(item => {
+    if (tipoDesejado === 'pendente') {
+      return item.status === 'pendente';
+    }
+    const isIncome = tipoDesejado === 'entrada';
+    return item.status === 'pago' && item.type === (isIncome ? 'income' : 'expense');
+  });
 
   if (filtrados.length === 0) {
-    tabelaCorpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--gray-400);">Nenhum registro.</td></tr>`;
+    tabelaCorpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--gray-400); padding: 14px;">Nenhum registro encontrado.</td></tr>`;
   } else {
     filtrados.forEach(item => {
       const isPaid = item.status === 'pago';
+      const isIncome = item.type === 'income';
       tabelaCorpo.innerHTML += `
         <tr>
           <td>${item.date.split('-').reverse().join('/')}</td>
-          <td>${item.description}</td>
+          <td><strong>${item.description}</strong></td>
           <td>${item.category || '-'}</td>
-          <td style="font-weight: bold; color: ${isIncome ? 'var(--green)' : 'var(--red)'};">${formatCurrency(item.amount)}</td>
-          <td style="color: ${isPaid ? 'var(--green)' : 'var(--amber)'};">${isPaid ? '✓ Pago' : '⏳ Pendente'}</td>
+          <td style="font-weight: 800; color: ${isIncome ? 'var(--green)' : 'var(--red)'};">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</td>
+          <td style="color: ${isPaid ? 'var(--green)' : 'var(--amber)'}; font-weight:700;">${isPaid ? '✓ Pago' : '⏳ Pendente'}</td>
         </tr>`;
     });
   }
@@ -1743,16 +2423,21 @@ function abrirModalCategoriaReport(categoria) {
   tabelaCorpo.innerHTML = '';
 
   const filtrados = getReportFilteredTransactions().filter(item => item.type === 'expense' && (item.category || 'Outros') === categoria);
-  filtrados.forEach(item => {
-    tabelaCorpo.innerHTML += `
-      <tr>
-        <td>${item.date.split('-').reverse().join('/')}</td>
-        <td>${item.description}</td>
-        <td>${item.category}</td>
-        <td style="font-weight: bold; color: var(--red);">${formatCurrency(item.amount)}</td>
-        <td>${item.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}</td>
-      </tr>`;
-  });
+  
+  if (filtrados.length === 0) {
+    tabelaCorpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--gray-400); padding: 14px;">Nenhum lançamento nesta categoria.</td></tr>`;
+  } else {
+    filtrados.forEach(item => {
+      tabelaCorpo.innerHTML += `
+        <tr>
+          <td>${item.date.split('-').reverse().join('/')}</td>
+          <td><strong>${item.description}</strong></td>
+          <td>${item.category}</td>
+          <td style="font-weight: 800; color: var(--red);">${formatCurrency(item.amount)}</td>
+          <td style="color: ${item.status === 'pago' ? 'var(--green)' : 'var(--amber)'}; font-weight:700;">${item.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}</td>
+        </tr>`;
+    });
+  }
   modal.classList.remove('hidden');
 }
 
@@ -1772,8 +2457,8 @@ function showInstallments(id) {
     const isPaid = item.status === 'pago';
     listEl.innerHTML += `
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100);">
-        <div><strong>${item.description}</strong><br><small>Vencimento: ${item.date.split('-').reverse().join('/')}</small></div>
-        <div style="text-align: right;"><strong>${formatCurrency(item.amount)}</strong><br><span style="font-size:0.7em; padding:2px 8px; border-radius:12px; color:white; background:${isPaid ? 'var(--green)' : 'var(--amber)'}">${isPaid ? 'Pago' : 'Pendente'}</span></div>
+        <div><strong>${item.description}</strong><br><small style="color: var(--gray-500);">Vencimento: ${item.date.split('-').reverse().join('/')}</small></div>
+        <div style="text-align: right;"><strong>${formatCurrency(item.amount)}</strong><br><span style="font-size:0.72em; padding:2px 8px; border-radius:12px; color:white; font-weight:700; background:${isPaid ? 'var(--green)' : 'var(--amber)'}">${isPaid ? 'Pago' : 'Pendente'}</span></div>
       </div>`;
   });
   document.getElementById('installments-modal').classList.remove('hidden');
