@@ -2375,6 +2375,7 @@ async function deletePiggy(key) {
 // MODAIS ADICIONAIS
 // ==========================================
 
+// CÓDIGO CORRIGIDO/COM ORDENAÇÃO
 function abrirModalDetalhes(tipoDesejado) {
   const modal = document.getElementById('modal-detalhes');
   const titulo = document.getElementById('modal-titulo');
@@ -2389,13 +2390,18 @@ function abrirModalDetalhes(tipoDesejado) {
   
   tabelaCorpo.innerHTML = '';
 
-  const filtrados = allTransactions.filter(item => {
+  let filtrados = allTransactions.filter(item => {
     if (tipoDesejado === 'pendente') {
       return item.status === 'pendente';
     }
     const isIncome = tipoDesejado === 'entrada';
     return item.status === 'pago' && item.type === (isIncome ? 'income' : 'expense');
   });
+
+  // ORDENAÇÃO: Se for 'pendente', ordena do mais próximo por data para o mais distante (crescente)
+  if (tipoDesejado === 'pendente') {
+    filtrados.sort((a, b) => a.date.localeCompare(b.date));
+  }
 
   if (filtrados.length === 0) {
     tabelaCorpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--gray-400); padding: 14px;">Nenhum registro encontrado.</td></tr>`;
